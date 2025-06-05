@@ -5,6 +5,7 @@ Wraps SQLiteMemory with AI-powered memory operations.
 
 import json
 import numpy as np
+import os
 from typing import List, Dict, Optional, Any
 from datetime import datetime
 from .sqlite_memory import SQLiteMemory
@@ -18,17 +19,23 @@ class MemoryManager:
         
         Args:
             db_path: Path to SQLite database
-            model: AI model instance for generating embeddings
+            model: AI model instance (used for future extensions)
         """
         self.db = SQLiteMemory(db_path)
         self.model = model
         self.embedding_cache = {}
+        
+        # Check embedding availability
+        if os.getenv("OPENAI_API_KEY"):
+            print("✅ Embeddings enabled (OpenAI)")
+        else:
+            print("ℹ️ Embeddings disabled (no OpenAI API key)")
     
-    async def save_memory(self,
-                         user_id: str,
-                         content: str,
-                         metadata: Optional[Dict[str, Any]] = None,
-                         category: str = "tool_recommendation") -> int:
+    def save_memory(self,
+                    user_id: str,
+                    content: str,
+                    metadata: Optional[Dict[str, Any]] = None,
+                    category: str = "tool_recommendation") -> int:
         """Save memory with generated embedding.
         
         Args:
@@ -40,14 +47,8 @@ class MemoryManager:
         Returns:
             Memory ID
         """
-        # Generate embedding if model available
-        embedding = None
-        if self.model and hasattr(self.model, 'embed'):
-            try:
-                # Simple embedding generation - adapt based on actual model API
-                embedding = await self._generate_embedding(content)
-            except Exception as e:
-                print(f"Warning: Could not generate embedding: {e}")
+        # Generate embedding if available
+        embedding = self._generate_embedding(content)
         
         # Add timestamp to metadata
         if metadata is None:
@@ -62,11 +63,24 @@ class MemoryManager:
             category=category
         )
     
-    async def _generate_embedding(self, text: str) -> List[float]:
-        """Generate embedding for text - placeholder for actual implementation."""
-        # This is a simplified version - replace with actual model embedding API
-        # For now, create a random embedding for testing
-        return np.random.rand(384).tolist()
+    def _generate_embedding(self, text: str) -> Optional[List[float]]:
+        """Generate embedding using OpenAI API when available."""
+        # Check for OpenAI API key
+        openai_key = os.getenv("OPENAI_API_KEY")
+        if not openai_key:
+            return None
+        
+        try:
+            from openai import OpenAI
+            client = OpenAI(api_key=openai_key)
+            response = client.embeddings.create(
+                model="text-embedding-3-small",
+                input=text[:8000]  # Limit text length
+            )
+            return response.data[0].embedding
+        except Exception:
+            # Silently fail - embeddings are optional
+            return None
     
     def retrieve_memories(self, 
                          user_id: str,
