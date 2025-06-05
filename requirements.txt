@@ -5,6 +5,8 @@ pydantic-ai[google-generativeai]
 mcp
 python-dotenv
 matplotlib
+numpy
+openai
 requests
 shcheck
 webtech

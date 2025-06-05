@@ -7,6 +7,12 @@ from pydantic_ai.models.openai import OpenAIModel
 from pydantic_ai.models.anthropic import AnthropicModel
 from pydantic_ai.models.google import GoogleModel
 
+# MEMORY INTEGRATION START
+import uuid
+from datetime import datetime
+from memory.memory_manager import MemoryManager
+# MEMORY INTEGRATION END
+
 load_dotenv() # Call this at the beginning of your script
 
 def load_project_context():
@@ -40,6 +46,16 @@ elif model_type == "deepseek":
 else:
     model = OpenAIModel(model_name="gpt-4o-mini")
 
+# MEMORY INTEGRATION START
+# Initialize memory manager with the current model
+memory_manager = None
+try:
+    memory_manager = MemoryManager(db_path="data/memories.db", model=model)
+    print("💾 Memory system initialized successfully!")
+except Exception as e:
+    print(f"⚠️ Memory system disabled: {e}")
+# MEMORY INTEGRATION END
+
 # Define the MCP Servers
 brave_server = MCPServerStdio(
     'python',
@@ -67,7 +83,7 @@ tool_recommendation_server = MCPServerStdio(
 )
 
 # Define the Agent with all MCP servers
-def create_agent_with_context(project_context=""):
+def create_agent_with_context(project_context="", user_id=None):
     context_section = ""
     if project_context.strip():
         context_section = f"""
@@ -81,6 +97,31 @@ Use this context to provide more targeted and relevant tool recommendations. Ref
 ---
 
 """
+    
+    # MEMORY INTEGRATION START
+    # Load relevant memories if user_id and memory_manager are available
+    if user_id and memory_manager:
+        try:
+            memories = memory_manager.retrieve_memories(
+                user_id=user_id,
+                limit=5,
+                category="tool_recommendation"
+            )
+            if memories and memories != "No previous interactions found.":
+                context_section += f"""
+**PREVIOUS INTERACTIONS**
+Here are relevant previous interactions with this user:
+
+{memories}
+
+Use these memories to provide more personalized recommendations based on past discussions.
+
+---
+
+"""
+        except Exception as e:
+            print(f"⚠️ Could not load memories: {e}")
+    # MEMORY INTEGRATION END
     
     system_prompt = f"""{context_section}You are an intelligent tool recommendation assistant specializing in:
 
@@ -141,8 +182,23 @@ async def main():
     # Load project context
     project_context = load_project_context()
     
+    # MEMORY INTEGRATION START
+    # Generate or retrieve user session ID
+    user_id = None
+    if memory_manager:
+        user_session_file = ".user_session"
+        if os.path.exists(user_session_file):
+            with open(user_session_file, 'r') as f:
+                user_id = f.read().strip()
+        else:
+            user_id = str(uuid.uuid4())
+            with open(user_session_file, 'w') as f:
+                f.write(user_id)
+        print(f"🔑 User session: {user_id[:8]}...")
+    # MEMORY INTEGRATION END
+    
     # Create agent with context
-    agent = create_agent_with_context(project_context)
+    agent = create_agent_with_context(project_context, user_id)
     
     async with agent.run_mcp_servers():
         print("🔧 Tool Recommendation Assistant Ready! Type 'exit' to quit.\n")
@@ -175,6 +231,32 @@ async def main():
             print(f"\nAssistant: {result.output}\n")
             
             conversation.append({"role": "assistant", "content": result.output})
+            
+            # MEMORY INTEGRATION START
+            # Save significant interactions to memory if available
+            if memory_manager and user_id and len(result.output) > 100:
+                try:
+                    # Create a summary of the interaction
+                    memory_content = f"User asked: {user_input[:200]}\nAssistant provided: {result.output[:500]}"
+                    if len(result.output) > 500:
+                        memory_content += "..."
+                    
+                    # Save memory synchronously
+                    memory_id = memory_manager.save_memory(
+                        user_id=user_id,
+                        content=memory_content,
+                        metadata={
+                            "timestamp": datetime.now().isoformat(),
+                            "user_input_length": len(user_input),
+                            "response_length": len(result.output),
+                            "category": "tool_recommendation"
+                        },
+                        category="tool_recommendation"
+                    )
+                    print(f"💾 Memory saved (ID: {memory_id})")
+                except Exception as e:
+                    print(f"⚠️ Could not save memory: {e}")
+            # MEMORY INTEGRATION END
 
 # Run the async function
 if __name__ == "__main__":
