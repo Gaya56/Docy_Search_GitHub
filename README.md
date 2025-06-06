@@ -1,175 +1,99 @@
-# Intelligent Tool Recommendation System with Memory
+# 🔧 Intelligent Tool Recommendation System with Advanced Memory
+**A production-ready AI assistant with persistent memory, semantic search, and dual interfaces (CLI + Web UI)**
 
-This repository contains an intelligent, context-aware tool recommendation system with **fully operational persistent memory capabilities** designed to help developers discover, analyze, and implement the best technical tools for their specific projects. The system combines live web search (via Brave API), AI-powered analysis, GitHub repository integration, and **intelligent memory storage with real OpenAI embeddings** to provide personalized tool recommendations that improve over time. Built on a clean, modular architecture using Pydantic AI and the Model Context Protocol (MCP), it reads your project context and **remembers your preferences** to provide increasingly personalized suggestions based on your tech stack, budget constraints, development goals, and conversation history.
+## ✅ **Status: FULLY OPERATIONAL with Phase 1 Memory Hardening Complete**
 
-## 🚀 Key Features
+Enterprise-grade memory capabilities with async operations, database migrations, and multi-user support - ready for production deployment and future multi-agent expansion.
 
-### 🧠 **✅ FULLY OPERATIONAL: Intelligent Memory System**
+## 🚀 **Key Features**
 
-- **Persistent Conversations**: ✅ **WORKING** - Remembers your tool preferences and past discussions
-- **Semantic Search**: ✅ **WORKING** - Uses OpenAI `text-embedding-3-small` for intelligent memory retrieval
-- **Session Continuity**: ✅ **WORKING** - Maintains context across app restarts with persistent user sessions
-- **Personalized Recommendations**: ✅ **WORKING** - Improves suggestions based on conversation history
-- **Privacy-First**: ✅ **IMPLEMENTED** - All memory stored locally in SQLite database
-- **Graceful Degradation**: ✅ **TESTED** - Works perfectly with or without memory features
-- **Real Embeddings**: ✅ **INTEGRATED** - Live OpenAI embedding generation for semantic similarity
+### 🧠 **Advanced Memory System (Phase 1 Complete)**
+- ✅ **Async Memory Operations** - Non-blocking saves with `aiosqlite` and `aiofiles`
+- ✅ **Database Migration Support** - Automatic schema updates for existing installations
+- ✅ **Multi-User Isolation** - Proper user_id indexing and session management
+- ✅ **Memory Lifecycle Management** - Compression, archival, and cleanup capabilities
+- ✅ **Real OpenAI Embeddings** - Semantic search with `text-embedding-3-small`
+- ✅ **Graceful Degradation** - Works perfectly with or without embedding API
+- ✅ **Production Error Handling** - Comprehensive retry mechanisms and fallbacks
+### 🔧 **Tool Recommendation Engine**
+- ✅ **Live Web Search** - Real-time tool discovery via Brave Search API
+- ✅ **GitHub Integration** - Official repository access and code examples
+- ✅ **AI-Powered Analysis** - Quality scoring and suitability assessment
+- ✅ **Installation Guides** - Step-by-step setup instructions
+- ✅ **Multi-Category Support** - Web, mobile, desktop, database, DevOps, AI/ML, and more
 
-### 🌐 **✅ NEW: Beautiful Web Interface**
+### 🖥️ **Dual Interface Options**
+- ✅ **Command Line Interface** - Fast, lightweight terminal interaction
+- ✅ **Streamlit Web UI** - Beautiful, responsive web interface with memory management
+- ✅ **Session Persistence** - Conversations continue across restarts
+- ✅ **Memory Explorer** - Visual interface for conversation history
 
-- **Streamlit UI**: ✅ **WORKING** - Modern web interface for the assistant (`main_ui.py`)
-- **Dual Interface**: ✅ **AVAILABLE** - Both command line (`app.py`) and web UI (`streamlit run main_ui.py`)
-- **Memory Integration**: ✅ **WORKING** - Full memory system support in web interface
-- **Session Persistence**: ✅ **WORKING** - User sessions work across both interfaces
-- **Real-time Updates**: ✅ **WORKING** - Live conversation with memory saving indicators
+## 🏗️ **Architecture Overview**
 
-### Tool Recommendation Engine
-
-- **Live Web Search**: Uses Brave API for current tool discovery
-- **AI-Powered Analysis**: Gemini AI evaluates tools for relevance, reliability, and ease of use
-- **Smart Rankings**: Tools ranked based on multiple criteria including community support and security
-- **Installation Guides**: Automatic generation of official installation instructions
-- **Comparative Analysis**: Side-by-side tool comparisons
-- **Task-Specific Recommendations**: Curated suggestions for specific development workflows
-
-### GitHub Integration
-
-- **Repository Discovery**: Search for official GitHub repositories of recommended tools
-- **Code Examples**: Access real implementation examples and setup files
-- **Project Structure Analysis**: View repository structure and key files
-- **Direct Links**: Get direct links to GitHub repositories and documentation
-- **Permission-Based Access**: Secure GitHub integration with user consent
-
-### Development Tool Discovery
-
-- **Multi-Category Support**: Web development, mobile apps, desktop applications, databases, DevOps, testing, design, data science, AI/ML, game development, security, and productivity tools
-- **Framework Recommendations**: React, Vue.js, Angular, Django, Flask, Express.js, and more
-- **Tool Comparison**: Side-by-side analysis of similar tools
-- **Technology Stack Guidance**: Complete toolchain recommendations for specific project types
-
-### Project Context Awareness
-
-- **Smart Context Loading**: Automatically loads your project details from `project_context.md`
-- **Targeted Recommendations**: Suggests tools based on your specific tech stack, challenges, and goals
-- **Budget-Aware Suggestions**: Considers your budget constraints and preferences
-- **Skill-Level Appropriate**: Recommendations matched to your experience level
-
-### Multi-AI Support
-
-- **OpenAI GPT Models** (default)
-- **Anthropic Claude**
-- **Google Gemini**
-- **DeepSeek** (via OpenAI API)
-
-## 🛠 Architecture
-
-Built on **Pydantic AI** and **Model Context Protocol (MCP)** for clean, modular design:
-
-```text
-app.py                          # Main chat interface with memory integration
-main_ui.py                      # 🆕 Streamlit Web UI for the assistant
-memory/
-├── memory_manager.py          # 🆕 AI-powered memory operations with embeddings
-├── sqlite_memory.py           # 🆕 SQLite database operations for persistence
-├── __init__.py                # 🆕 Memory system exports
-└── README.md                  # 🆕 Complete memory system documentation
-tool_recommendation/
-└── mcp_server.py              # Intelligent tool discovery & analysis
-github_mcp_server.py           # GitHub repository integration
-brave_search.py                # Brave API integration
-python_tools.py                # Data processing utilities
-project_context.md             # Your project details (auto-loaded)
-data/
-└── memories.db                # 🆕 SQLite database for conversation history
-.user_session                  # 🆕 Persistent user session ID
-streamlit_guide.md             # 🆕 Streamlit UI usage guide
+```
+Docy_Search_GitHub/
+├── 🎯 Core Applications
+│   ├── app.py                    # CLI interface with async memory
+│   └── main_ui.py               # Streamlit web interface
+├── 🧠 Memory System (Phase 1 Complete)
+│   ├── memory/
+│   │   ├── sqlite_memory.py     # Async + Sync SQLite operations
+│   │   ├── memory_manager.py    # Async memory with OpenAI embeddings
+│   │   └── README.md           # Memory system documentation
+├── 🔧 Tool Recommendation
+│   ├── tool_recommendation/     # MCP server for tool analysis
+│   ├── brave_search.py         # Live web search integration
+│   ├── github_mcp_server.py    # GitHub repository access
+│   └── python_tools.py         # Python-specific tooling
+├── 📚 Documentation
+│   ├── Docs/                   # Comprehensive guides
+│   └── streamlit_guide.md      # Web UI documentation
+└── 🗃️ Data & Configuration
+    ├── data/memories.db        # SQLite database with async support
+    ├── .user_session          # Persistent session tracking
+    └── project_context.md     # Project-specific context
 ```
 
-**Current Status:** ✅ **FULLY OPERATIONAL** - Complete system with **working intelligent memory capabilities** including real OpenAI embeddings, **beautiful Streamlit web interface**, tool recommendation, GitHub integration, multi-AI support, interactive chat with permission prompts, project context awareness, and comprehensive development tool analysis capabilities. Both command line and web interfaces are fully functional with zero breaking changes.
+## 🚀 **Quick Start**
 
-## 🚀 Quick Start
-
-### 1. Installation
-
+### Prerequisites
 ```bash
-# Clone the repository
-git clone <repository-url>
-cd Docy_Search
-
 # Install dependencies
 pip install -r requirements.txt
+
+# Set up environment variables
+cp .env.example .env
+# Add your API keys: OPENAI_API_KEY, ANTHROPIC_API_KEY, BRAVE_API_KEY, etc.
 ```
 
-### 2. Configuration
-
-Create a `.env` file with your API keys:
-
-```env
-# Required for tool recommendation system
-BRAVE_API_KEY=your_brave_search_api_key
-GOOGLE_API_KEY=your_gemini_api_key
-
-# Required for GitHub integration
-GITHUB_TOKEN=your_github_token
-
-# 🆕 Required for memory system embeddings (optional - system works without)
-OPENAI_API_KEY=your_openai_key
-
-# Optional: Choose your preferred AI model
-AI_MODEL=gemini  # Options: openai, claude, gemini, deepseek
-
-# Add other API keys as needed
-ANTHROPIC_API_KEY=your_claude_key
-DEEPSEEK_API_KEY=your_deepseek_key
-```
-
-### 3. Set Up Project Context (Optional)
-
-Create a `project_context.md` file with details about your project:
-
+### Option 1: Command Line Interface
 ```bash
-# Copy the example and customize it
-cp project_context_example.md project_context.md
-# Edit with your project details
-nano project_context.md
+# Activate environment
+source .venv/bin/activate
+
+# Run CLI with async memory
+python3 app.py
 ```
 
-The assistant will automatically load this context and provide more targeted recommendations based on your specific project, tech stack, and goals.
-
-### 4. Start the Application
-
-Choose your preferred interface:
-
-#### 🖥️ **Command Line Interface (Terminal)**
+### Option 2: Web Interface (Recommended)
 ```bash
-# Start the interactive chat with memory system
-python app.py
-```
+# Activate environment
+source .venv/bin/activate
 
-#### 🌐 **Web Interface (Streamlit UI)**
-```bash
-# Start the beautiful web interface
+# Launch Streamlit UI with memory management
 streamlit run main_ui.py --server.port 8555
-# Then open: http://localhost:8555
 ```
 
-**🧠 Memory System Features:**
-
-- **First Run**: Creates user session and initializes database
-- **Subsequent Runs**: Loads previous conversation history  
-- **Smart Context**: Uses past discussions to enhance recommendations
-- **Privacy**: All data stored locally, never shared externally
-
-### 5. Test the System
-
+### First Time Setup
 ```bash
-# Test tool recommendation functionality
-python tests/test_tool_recommendation.py
+# Create project context (optional but recommended)
+echo "I'm building a React web application with TypeScript" > project_context.md
 
-# Test GitHub integration
-python tests/test_github_server.py
-
-# Run demo examples
-python demos/demo_tool_recommendation.py
+# The system will automatically:
+# ✅ Initialize async SQLite database with proper schema
+# ✅ Create user session with UUID
+# ✅ Set up OpenAI embeddings (if API key provided)
+# ✅ Apply any necessary database migrations
 ```
 
 ## 🎉 Implementation Success Story

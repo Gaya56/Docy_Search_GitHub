@@ -1,6 +1,6 @@
 """
 Streamlit UI for Docy_Search with Memory System
-Chat Tab Implementation
+Chat Tab Implementation with Live Activity Tracking
 """
 
 import streamlit as st
@@ -9,11 +9,16 @@ import os
 import sys
 import uuid
 import random
+import json
 from datetime import datetime
 from dotenv import load_dotenv
 
 # Add current directory to path for imports
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+# Import activity tracking and cost tracking
+from activity_tracker import activity_tracker
+from memory.cost_tracker import CostTracker
 
 # Import from existing app.py
 from app import (
@@ -94,6 +99,10 @@ def initialize_session_state():
     
     if 'project_context' not in st.session_state:
         st.session_state.project_context = load_project_context()
+    
+    # Initialize cost tracker
+    if 'cost_tracker' not in st.session_state:
+        st.session_state.cost_tracker = CostTracker()
 
 # Load project context
 @st.cache_data
@@ -102,8 +111,68 @@ def get_project_context():
     return load_project_context()
 
 def display_sidebar():
-    """Display sidebar with session info and controls"""
+    """Enhanced sidebar with live activity tracking"""
     with st.sidebar:
+        # Live Activity Section
+        st.markdown("### 🔴 Live Activity")
+        
+        activity_summary = activity_tracker.get_activity_summary()
+        current = activity_summary.get("current")
+        
+        if current and current["status"] == "running":
+            st.markdown(f"**{current['action']}**")
+            st.progress(current["progress"])
+            if current.get("details"):
+                st.caption(json.dumps(current["details"], indent=2))
+        else:
+            st.info("No active operations")
+        
+        # Recent Activities
+        st.markdown("### 📜 Recent Activities")
+        recent_activities = activity_summary["recent"][-5:] if activity_summary["recent"] else []
+        
+        if recent_activities:
+            for activity in reversed(recent_activities):
+                status_icon = "✅" if activity["status"] == "complete" else "⏳"
+                with st.expander(f"{status_icon} {activity['time_str']} - {activity['tool']}", 
+                               expanded=False):
+                    st.json({
+                        "action": activity["action"],
+                        "duration": f"{activity.get('duration', 0):.2f}s",
+                        "result": activity.get("result_preview", "")
+                    })
+        else:
+            st.info("No recent activities")
+        
+        # Resource Access
+        st.markdown("### 🔍 Resource Access")
+        resources = activity_summary["resources"]
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            st.metric("Files", len(resources["files"]))
+            st.metric("Websites", len(resources["websites"]))
+        with col2:
+            st.metric("Repos", len(resources["repos"]))
+            st.metric("API Calls", sum(resources["api_calls"].values()))
+        
+        # Cost Tracking
+        st.markdown("### 💰 API Usage")
+        
+        try:
+            # Get costs asynchronously
+            daily_cost = asyncio.run(st.session_state.cost_tracker.get_daily_cost())
+            monthly_cost = asyncio.run(st.session_state.cost_tracker.get_monthly_cost())
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                st.metric("Today", f"${daily_cost:.4f}")
+            with col2:
+                st.metric("Month", f"${monthly_cost:.2f}")
+        except Exception as e:
+            st.error(f"Cost tracking error: {e}")
+        
+        # Session Info
         st.markdown("### 📊 Session Info")
         
         # Session details in a styled container

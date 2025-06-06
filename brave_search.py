@@ -4,6 +4,14 @@ import os
 import requests
 import json
 
+# Import activity tracking with graceful fallback
+try:
+    from activity_tracker import activity_tracker
+    TRACKING_AVAILABLE = True
+except ImportError:
+    TRACKING_AVAILABLE = False
+    print("Activity tracking not available - running without tracking")
+
 
 load_dotenv(override=True)
 
@@ -29,7 +37,19 @@ websearch_config = {
 @mcp.tool()
 async def search_web(query: str, num_results: int = None) -> str:
     """Search the web using Brave Search API and return results as markdown formatted text."""
+    activity_id = None
     try:
+        # Start activity tracking
+        if TRACKING_AVAILABLE:
+            activity_id = await activity_tracker.start_activity(
+                tool_name="search_web",
+                params={
+                    "query": query[:100] + "..." if len(query) > 100 else query,
+                    "num_results": num_results or websearch_config["parameters"]["default_num_results"]
+                }
+            )
+            await activity_tracker.update_activity(activity_id, progress=20, details={"status": "Preparing search request"})
+        
         headers = {
             "Accept": "application/json",
             "Accept-Encoding": "gzip",
@@ -43,13 +63,33 @@ async def search_web(query: str, num_results: int = None) -> str:
             "freshness": "pw"  # past week for recent results
         }
         
+        if TRACKING_AVAILABLE and activity_id:
+            await activity_tracker.update_activity(activity_id, progress=40, details={"status": "Sending API request"})
+        
         response = requests.get(brave_search_url, headers=headers, params=params)
         response.raise_for_status()
         
+        if TRACKING_AVAILABLE and activity_id:
+            await activity_tracker.update_activity(activity_id, progress=70, details={"status": "Processing results"})
+        
         search_results = response.json()
-        return format_search_results(search_results)
+        formatted_results = format_search_results(search_results)
+        
+        # Complete activity tracking with success
+        if TRACKING_AVAILABLE and activity_id:
+            results_count = len(search_results.get("web", {}).get("results", []))
+            result_preview = f"Found {results_count} results for: {query[:50]}{'...' if len(query) > 50 else ''}"
+            await activity_tracker.complete_activity(activity_id, result=result_preview)
+        
+        return formatted_results
     except Exception as e:
-        return f"An error occurred while searching with Brave: {e}"
+        error_msg = f"An error occurred while searching with Brave: {e}"
+        
+        # Complete activity tracking with error
+        if TRACKING_AVAILABLE and activity_id:
+            await activity_tracker.complete_activity(activity_id, result=f"Search failed: {str(e)[:100]}")
+        
+        return error_msg
 
 def format_search_results(search_results):
     web_results = search_results.get("web", {}).get("results", [])

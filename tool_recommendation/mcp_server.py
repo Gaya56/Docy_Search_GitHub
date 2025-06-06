@@ -7,6 +7,16 @@ import google.generativeai as genai
 from typing import List, Dict, Any
 import re
 
+# Import activity tracking with graceful fallback
+try:
+    import sys
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    from activity_tracker import activity_tracker
+    TRACKING_AVAILABLE = True
+except ImportError:
+    TRACKING_AVAILABLE = False
+    print("Activity tracking not available - running without tracking")
+
 load_dotenv()
 mcp = FastMCP("tool_recommendation")
 
@@ -17,54 +27,78 @@ model = genai.GenerativeModel('gemini-1.5-flash')
 @mcp.tool()
 async def search_tools(query: str, category: str = "general") -> str:
     """Search for tools using Brave Search API and return relevant results for any development task."""
-    brave_api_key = os.getenv('BRAVE_API_KEY')
-    if not brave_api_key:
-        return "Error: BRAVE_API_KEY not found in environment variables"
-    
-    # Enhanced category keywords for general development
-    category_keywords = {
-        "web": "web development tools frameworks frontend backend",
-        "mobile": "mobile app development tools android ios react native flutter",
-        "desktop": "desktop application development tools electron qt",
-        "database": "database tools management sql nosql mongodb postgresql",
-        "devops": "devops tools ci cd deployment docker kubernetes",
-        "testing": "testing tools unit integration automation selenium jest",
-        "design": "design tools ui ux figma sketch prototyping",
-        "data": "data analysis tools python r jupyter pandas numpy",
-        "ai": "artificial intelligence machine learning tools tensorflow pytorch",
-        "game": "game development tools unity unreal godot",
-        "security": "security tools vulnerability scanning penetration testing",
-        "productivity": "productivity tools development ide editors vscode",
-        "general": "development tools programming utilities software engineering"
-    }
-    
-    enhanced_query = f"{query} {category_keywords.get(category, category_keywords['general'])}"
-    
-    url = "https://api.search.brave.com/res/v1/web/search"
-    headers = {
-        "Accept": "application/json",
-        "Accept-Encoding": "gzip",
-        "X-Subscription-Token": brave_api_key
-    }
-    
-    params = {
-        "q": enhanced_query,
-        "count": 10,
-        "search_lang": "en",
-        "country": "US",
-        "safesearch": "moderate",
-        "freshness": "py"  # Past year for recent tools
-    }
-    
+    activity_id = None
     try:
+        # Start activity tracking
+        if TRACKING_AVAILABLE:
+            activity_id = await activity_tracker.start_activity(
+                tool_name="search_tools",
+                params={
+                    "query": query[:100] + "..." if len(query) > 100 else query,
+                    "category": category
+                }
+            )
+            await activity_tracker.update_activity(activity_id, progress=20, details={"status": "Preparing tool search"})
+        
+        brave_api_key = os.getenv('BRAVE_API_KEY')
+        if not brave_api_key:
+            error_msg = "Error: BRAVE_API_KEY not found in environment variables"
+            if TRACKING_AVAILABLE and activity_id:
+                await activity_tracker.complete_activity(activity_id, result=error_msg)
+            return error_msg
+        
+        # Enhanced category keywords for general development
+        category_keywords = {
+            "web": "web development tools frameworks frontend backend",
+            "mobile": "mobile app development tools android ios react native flutter",
+            "desktop": "desktop application development tools electron qt",
+            "database": "database tools management sql nosql mongodb postgresql",
+            "devops": "devops tools ci cd deployment docker kubernetes",
+            "testing": "testing tools unit integration automation selenium jest",
+            "design": "design tools ui ux figma sketch prototyping",
+            "data": "data analysis tools python r jupyter pandas numpy",
+            "ai": "artificial intelligence machine learning tools tensorflow pytorch",
+            "game": "game development tools unity unreal godot",
+            "security": "security tools vulnerability scanning penetration testing",
+            "productivity": "productivity tools development ide editors vscode",
+            "general": "development tools programming utilities software engineering"
+        }
+        
+        enhanced_query = f"{query} {category_keywords.get(category, category_keywords['general'])}"
+        
+        url = "https://api.search.brave.com/res/v1/web/search"
+        headers = {
+            "Accept": "application/json",
+            "Accept-Encoding": "gzip",
+            "X-Subscription-Token": brave_api_key
+        }
+        
+        params = {
+            "q": enhanced_query,
+            "count": 10,
+            "search_lang": "en",
+            "country": "US",
+            "safesearch": "moderate",
+            "freshness": "py"  # Past year for recent tools
+        }
+        
+        if TRACKING_AVAILABLE and activity_id:
+            await activity_tracker.update_activity(activity_id, progress=40, details={"status": "Sending tool search request"})
+        
         response = requests.get(url, headers=headers, params=params, timeout=10)
         response.raise_for_status()
+        
+        if TRACKING_AVAILABLE and activity_id:
+            await activity_tracker.update_activity(activity_id, progress=70, details={"status": "Processing tool search results"})
         
         data = response.json()
         results = data.get('web', {}).get('results', [])
         
         if not results:
-            return f"No search results found for query: {query}"
+            error_msg = f"No search results found for query: {query}"
+            if TRACKING_AVAILABLE and activity_id:
+                await activity_tracker.complete_activity(activity_id, result=error_msg)
+            return error_msg
         
         output = f"Search Results for '{query}' (Category: {category}):\n\n"
         
@@ -77,18 +111,41 @@ async def search_tools(query: str, category: str = "general") -> str:
             output += f"   URL: {url}\n"
             output += f"   Description: {description}\n\n"
         
+        # Complete activity tracking with success
+        if TRACKING_AVAILABLE and activity_id:
+            result_preview = f"Found {len(results[:8])} tool results for: {query[:50]}{'...' if len(query) > 50 else ''}"
+            await activity_tracker.complete_activity(activity_id, result=result_preview)
+        
         return output
         
     except requests.exceptions.RequestException as e:
-        return f"Search API error: {str(e)}"
+        error_msg = f"Search API error: {str(e)}"
+        if TRACKING_AVAILABLE and activity_id:
+            await activity_tracker.complete_activity(activity_id, result=f"Tool search API error: {str(e)[:100]}")
+        return error_msg
     except Exception as e:
-        return f"Unexpected error during search: {str(e)}"
+        error_msg = f"Unexpected error during search: {str(e)}"
+        if TRACKING_AVAILABLE and activity_id:
+            await activity_tracker.complete_activity(activity_id, result=f"Tool search error: {str(e)[:100]}")
+        return error_msg
 
 @mcp.tool()
 async def analyze_tools(search_results: str, requirements: str = "") -> str:
     """Analyze search results using AI to rank and evaluate tools for any development purpose."""
-    
-    prompt = f"""Analyze these tool search results and provide intelligent recommendations:
+    activity_id = None
+    try:
+        # Start activity tracking
+        if TRACKING_AVAILABLE:
+            activity_id = await activity_tracker.start_activity(
+                tool_name="analyze_tools",
+                params={
+                    "requirements": requirements[:100] + "..." if len(requirements) > 100 else requirements,
+                    "results_length": len(search_results)
+                }
+            )
+            await activity_tracker.update_activity(activity_id, progress=30, details={"status": "Preparing AI analysis"})
+        
+        prompt = f"""Analyze these tool search results and provide intelligent recommendations:
 
 SEARCH RESULTS:
 {search_results}
@@ -114,11 +171,23 @@ For each recommended tool, provide:
 
 Rank the top 5 tools and explain your reasoning. Focus on practical recommendations for developers, engineers, and technical professionals working on various projects."""
 
-    try:
+        if TRACKING_AVAILABLE and activity_id:
+            await activity_tracker.update_activity(activity_id, progress=70, details={"status": "Running AI tool analysis"})
+
         response = model.generate_content(prompt)
-        return f"# Tool Analysis and Recommendations\n\n{response.text}"
+        result = f"# Tool Analysis and Recommendations\n\n{response.text}"
+        
+        # Complete activity tracking with success
+        if TRACKING_AVAILABLE and activity_id:
+            result_preview = f"AI analysis complete: {len(response.text)} chars of recommendations"
+            await activity_tracker.complete_activity(activity_id, result=result_preview)
+        
+        return result
     except Exception as e:
-        return f"Analysis failed: {str(e)}"
+        error_msg = f"Analysis failed: {str(e)}"
+        if TRACKING_AVAILABLE and activity_id:
+            await activity_tracker.complete_activity(activity_id, result=f"AI analysis error: {str(e)[:100]}")
+        return error_msg
 
 @mcp.tool()
 async def get_installation_guide(tool_name: str, os_type: str = "linux") -> str:

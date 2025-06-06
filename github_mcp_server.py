@@ -13,6 +13,14 @@ import aiohttp
 import base64
 from typing import Dict, List, Optional, Any
 
+# Import activity tracking with graceful fallback
+try:
+    from activity_tracker import activity_tracker
+    TRACKING_AVAILABLE = True
+except ImportError:
+    TRACKING_AVAILABLE = False
+    print("Activity tracking not available - running without tracking")
+
 load_dotenv(override=True)
 
 # Initialize FastMCP
@@ -45,7 +53,20 @@ async def search_github_repositories(query: str, language: str = "", limit: int 
     Returns:
         JSON string with repository information including links, descriptions, and stats
     """
+    activity_id = None
     try:
+        # Start activity tracking
+        if TRACKING_AVAILABLE:
+            activity_id = await activity_tracker.start_activity(
+                tool_name="search_github_repositories",
+                params={
+                    "query": query[:100] + "..." if len(query) > 100 else query,
+                    "language": language,
+                    "limit": limit
+                }
+            )
+            await activity_tracker.update_activity(activity_id, progress=20, details={"status": "Preparing GitHub search"})
+        
         search_query = query
         if language:
             search_query += f" language:{language}"
@@ -57,12 +78,18 @@ async def search_github_repositories(query: str, language: str = "", limit: int 
             "per_page": min(limit, 10)
         }
         
+        if TRACKING_AVAILABLE and activity_id:
+            await activity_tracker.update_activity(activity_id, progress=40, details={"status": "Sending GitHub API request"})
+        
         async with aiohttp.ClientSession() as session:
             async with session.get(
                 f"{github_base_url}/search/repositories",
                 headers=github_headers,
                 params=params
             ) as response:
+                if TRACKING_AVAILABLE and activity_id:
+                    await activity_tracker.update_activity(activity_id, progress=70, details={"status": "Processing repository results"})
+                
                 if response.status == 200:
                     data = await response.json()
                     
@@ -84,12 +111,23 @@ async def search_github_repositories(query: str, language: str = "", limit: int 
                             "last_updated": item["updated_at"]
                         })
                     
+                    # Complete activity tracking with success
+                    if TRACKING_AVAILABLE and activity_id:
+                        result_preview = f"Found {len(result['repositories'])} repositories for: {query[:50]}{'...' if len(query) > 50 else ''}"
+                        await activity_tracker.complete_activity(activity_id, result=result_preview)
+                    
                     return json.dumps(result, indent=2)
                 else:
-                    return f"Error searching GitHub repositories: HTTP {response.status}"
+                    error_msg = f"Error searching GitHub repositories: HTTP {response.status}"
+                    if TRACKING_AVAILABLE and activity_id:
+                        await activity_tracker.complete_activity(activity_id, result=f"GitHub search failed: HTTP {response.status}")
+                    return error_msg
     
     except Exception as e:
-        return f"Error searching GitHub repositories: {str(e)}"
+        error_msg = f"Error searching GitHub repositories: {str(e)}"
+        if TRACKING_AVAILABLE and activity_id:
+            await activity_tracker.complete_activity(activity_id, result=f"GitHub search error: {str(e)[:100]}")
+        return error_msg
 
 @mcp.tool()
 async def get_repository_structure(repo_full_name: str) -> str:
@@ -102,11 +140,23 @@ async def get_repository_structure(repo_full_name: str) -> str:
     Returns:
         JSON string with repository structure and key files
     """
+    activity_id = None
     try:
+        # Start activity tracking
+        if TRACKING_AVAILABLE:
+            activity_id = await activity_tracker.start_activity(
+                tool_name="get_repository_structure",
+                params={"repo_full_name": repo_full_name}
+            )
+            await activity_tracker.update_activity(activity_id, progress=30, details={"status": "Fetching repository structure"})
+        
         url = f"{github_base_url}/repos/{repo_full_name}/contents/"
         
         async with aiohttp.ClientSession() as session:
             async with session.get(url, headers=github_headers) as response:
+                if TRACKING_AVAILABLE and activity_id:
+                    await activity_tracker.update_activity(activity_id, progress=70, details={"status": "Processing repository structure"})
+                
                 if response.status == 200:
                     files = await response.json()
                     
@@ -137,12 +187,23 @@ async def get_repository_structure(repo_full_name: str) -> str:
                         "key_files": key_files
                     }
                     
+                    # Complete activity tracking with success
+                    if TRACKING_AVAILABLE and activity_id:
+                        result_preview = f"Analyzed {len(structure)} files/folders in {repo_full_name}, found {len(key_files)} key files"
+                        await activity_tracker.complete_activity(activity_id, result=result_preview)
+                    
                     return json.dumps(result, indent=2)
                 else:
-                    return f"Error getting repository structure: HTTP {response.status}"
+                    error_msg = f"Error getting repository structure: HTTP {response.status}"
+                    if TRACKING_AVAILABLE and activity_id:
+                        await activity_tracker.complete_activity(activity_id, result=f"Repository structure error: HTTP {response.status}")
+                    return error_msg
     
     except Exception as e:
-        return f"Error getting repository structure: {str(e)}"
+        error_msg = f"Error getting repository structure: {str(e)}"
+        if TRACKING_AVAILABLE and activity_id:
+            await activity_tracker.complete_activity(activity_id, result=f"Repository structure error: {str(e)[:100]}")
+        return error_msg
 
 @mcp.tool()
 async def get_file_from_repository(repo_full_name: str, file_path: str) -> str:
@@ -156,11 +217,23 @@ async def get_file_from_repository(repo_full_name: str, file_path: str) -> str:
     Returns:
         JSON string with file content and metadata
     """
+    activity_id = None
     try:
+        # Start activity tracking
+        if TRACKING_AVAILABLE:
+            activity_id = await activity_tracker.start_activity(
+                tool_name="get_file_from_repository",
+                params={"repo_full_name": repo_full_name, "file_path": file_path}
+            )
+            await activity_tracker.update_activity(activity_id, progress=30, details={"status": "Fetching file content"})
+        
         url = f"{github_base_url}/repos/{repo_full_name}/contents/{file_path}"
         
         async with aiohttp.ClientSession() as session:
             async with session.get(url, headers=github_headers) as response:
+                if TRACKING_AVAILABLE and activity_id:
+                    await activity_tracker.update_activity(activity_id, progress=70, details={"status": "Processing file content"})
+                
                 if response.status == 200:
                     data = await response.json()
                     if data["type"] == "file":
@@ -180,14 +253,28 @@ async def get_file_from_repository(repo_full_name: str, file_path: str) -> str:
                             "content": content
                         }
                         
+                        # Complete activity tracking with success
+                        if TRACKING_AVAILABLE and activity_id:
+                            result_preview = f"Retrieved {data['name']} ({data['size']} bytes) from {repo_full_name}"
+                            await activity_tracker.complete_activity(activity_id, result=result_preview)
+                        
                         return json.dumps(result, indent=2)
                     else:
-                        return f"Error: {file_path} is not a file"
+                        error_msg = f"Error: {file_path} is not a file"
+                        if TRACKING_AVAILABLE and activity_id:
+                            await activity_tracker.complete_activity(activity_id, result=error_msg)
+                        return error_msg
                 else:
-                    return f"Error getting file content: HTTP {response.status}"
+                    error_msg = f"Error getting file content: HTTP {response.status}"
+                    if TRACKING_AVAILABLE and activity_id:
+                        await activity_tracker.complete_activity(activity_id, result=f"File retrieval error: HTTP {response.status}")
+                    return error_msg
     
     except Exception as e:
-        return f"Error getting file content: {str(e)}"
+        error_msg = f"Error getting file content: {str(e)}"
+        if TRACKING_AVAILABLE and activity_id:
+            await activity_tracker.complete_activity(activity_id, result=f"File retrieval error: {str(e)[:100]}")
+        return error_msg
 
 if __name__ == "__main__":
     mcp.run()

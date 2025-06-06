@@ -12,6 +12,24 @@ from typing import List, Dict, Optional, Any
 from datetime import datetime
 from .sqlite_memory import SQLiteMemory, AsyncSQLiteMemory
 
+# Import activity tracking and cost tracking modules
+try:
+    import sys
+    import os
+    # Add parent directory to path for imports
+    parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    if parent_dir not in sys.path:
+        sys.path.insert(0, parent_dir)
+    
+    from activity_tracker import activity_tracker
+    from memory.cost_tracker import CostTracker
+    TRACKING_AVAILABLE = True
+except ImportError as e:
+    print(f"Warning: Activity/Cost tracking not available: {e}")
+    activity_tracker = None
+    CostTracker = None
+    TRACKING_AVAILABLE = False
+
 try:
     from openai import OpenAI, AsyncOpenAI
     OPENAI_AVAILABLE = True
@@ -213,6 +231,11 @@ class AsyncMemoryManager:
         self.embedding_cache = {}
         self._initialized = False
         
+        # Initialize cost tracker if available
+        self.cost_tracker = None
+        if TRACKING_AVAILABLE and CostTracker:
+            self.cost_tracker = CostTracker()
+        
         # Initialize OpenAI client if available
         self.openai_client = None
         if OPENAI_AVAILABLE and os.getenv("OPENAI_API_KEY"):
@@ -268,22 +291,64 @@ class AsyncMemoryManager:
         )
     
     async def _generate_embedding_with_retry(self, text: str, max_retries: int = 3) -> Optional[List[float]]:
-        """Generate embedding using OpenAI API with retry logic."""
+        """Generate embedding using OpenAI API with retry logic, activity tracking, and cost logging."""
         if not self.openai_client:
             return None
         
+        # Track activity start (if available)
+        activity_id = None
+        if TRACKING_AVAILABLE and activity_tracker:
+            activity_id = await activity_tracker.start_activity("generate_embedding", {
+                "text_length": len(text),
+                "model": "text-embedding-3-small",
+                "max_retries": max_retries
+            })
+        
         for attempt in range(max_retries):
             try:
+                # Update activity progress (if available)
+                if TRACKING_AVAILABLE and activity_tracker and activity_id:
+                    await activity_tracker.update_activity(
+                        activity_id, 
+                        progress=(attempt + 1) / max_retries * 0.8,  # 80% for API call
+                        details={"attempt": attempt + 1, "max_retries": max_retries}
+                    )
+                
+                # Generate embedding
                 response = await self.openai_client.embeddings.create(
                     model="text-embedding-3-small",
                     input=text[:8000]  # Limit text length
                 )
+                
+                # Track cost after successful API call (if available)
+                cost_info = {"tokens": 0, "cost": 0.0}
+                if self.cost_tracker:
+                    cost_info = await self.cost_tracker.log_embedding_cost(text[:8000])
+                
+                # Complete activity with success (if available)
+                if TRACKING_AVAILABLE and activity_tracker and activity_id:
+                    summary = f"Generated embedding: {cost_info['tokens']} tokens, ${cost_info['cost']:.6f}, text preview: '{text[:50]}...'"
+                    await activity_tracker.complete_activity(activity_id, summary)
+                
                 return response.data[0].embedding
+                
             except Exception as e:
                 if attempt == max_retries - 1:
-                    print(f"Warning: Could not generate embedding after {max_retries} attempts: {e}")
+                    # Final failure
+                    error_msg = f"Failed after {max_retries} attempts: {str(e)}"
+                    if TRACKING_AVAILABLE and activity_tracker and activity_id:
+                        await activity_tracker.complete_activity(activity_id, error_msg)
+                    print(f"Warning: Could not generate embedding: {error_msg}")
                     return None
-                await asyncio.sleep(2 ** attempt)  # Exponential backoff
+                    
+                # Wait with exponential backoff before retry
+                await asyncio.sleep(2 ** attempt)
+                if TRACKING_AVAILABLE and activity_tracker and activity_id:
+                    await activity_tracker.update_activity(
+                        activity_id,
+                        progress=(attempt + 1) / max_retries * 0.5,  # 50% progress on failures
+                        details={"attempt": attempt + 1, "error": str(e), "retrying": True}
+                    )
         
         return None
     
