@@ -85,8 +85,33 @@ st.markdown("""
         font-size: 0.8em;
         color: #6c757d;
     }
-</style>
-""", unsafe_allow_html=True)
+    .tool-card {
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 0.5rem;
+        margin: 0.25rem 0;
+    }
+    .tool-card.selected {
+        background-color: #d4edda;
+        border-color: #c3e6cb;
+    }
+    .model-info {
+        background-color: #e9ecef;
+        border-radius: 6px;
+        padding: 0.5rem;
+        margin: 0.5rem 0;
+        font-size: 0.85em;
+    }
+    .config-summary {
+        background-color: #fff3cd;
+        border: 1px solid #ffeaa7;
+        border-radius: 6px;
+        padding: 0.5rem;
+        margin: 0.5rem 0;
+        font-size: 0.8em;
+    }
+</style>""", unsafe_allow_html=True)
 
 # Initialize session state
 def initialize_session_state():
@@ -126,7 +151,7 @@ def get_project_context():
     return load_project_context()
 
 def display_sidebar():
-    """Enhanced sidebar with live activity tracking"""
+    """Enhanced sidebar with live activity tracking, tool selection, and AI model options"""
     with st.sidebar:
         # Simple live refresh controls
         col1, col2 = st.columns([3, 1])
@@ -300,6 +325,152 @@ def display_sidebar():
                 st.text(st.session_state.project_context[:300] + "..." if len(st.session_state.project_context) > 300 else st.session_state.project_context)
         else:
             st.info("💡 Create `project_context.md` for personalized recommendations")
+        
+        # Tool Selection Dashboard
+        st.markdown("---")
+        st.markdown("### 🔧 Tool Selection Dashboard")
+        
+        # Available tools with descriptions
+        available_tools = {
+            "🔍 Web Search": {
+                "description": "Search the web for development tools and resources",
+                "key": "web_search",
+                "enabled": True
+            },
+            "🐙 GitHub Integration": {
+                "description": "Search GitHub repositories and access code examples",
+                "key": "github_search", 
+                "enabled": True
+            },
+            "🐍 Python Tools": {
+                "description": "Python-specific development tools and utilities",
+                "key": "python_tools",
+                "enabled": True
+            },
+            "🎯 Tool Recommendation": {
+                "description": "AI-powered tool analysis and recommendations",
+                "key": "tool_recommend",
+                "enabled": True
+            },
+            "📊 Data Visualization": {
+                "description": "Create charts and visualizations from data",
+                "key": "data_viz",
+                "enabled": True
+            }
+        }
+        
+        # Initialize tool preferences in session state
+        if 'selected_tools' not in st.session_state:
+            st.session_state.selected_tools = {tool["key"]: tool["enabled"] for tool in available_tools.values()}
+        
+        # Tool selection checkboxes
+        st.markdown("**Select tools to use in conversations:**")
+        
+        for tool_name, tool_info in available_tools.items():
+            col1, col2 = st.columns([3, 1])
+            with col1:
+                selected = st.checkbox(
+                    tool_name,
+                    value=st.session_state.selected_tools.get(tool_info["key"], True),
+                    key=f"tool_{tool_info['key']}",
+                    help=tool_info["description"]
+                )
+                st.session_state.selected_tools[tool_info["key"]] = selected
+            with col2:
+                if selected:
+                    st.markdown("✅")
+                else:
+                    st.markdown("❌")
+        
+        # Show selected tool count
+        selected_count = sum(1 for selected in st.session_state.selected_tools.values() if selected)
+        total_count = len(available_tools)
+        st.caption(f"**{selected_count}/{total_count} tools selected**")
+        
+        # AI Model Selection
+        st.markdown("---")
+        st.markdown("### 🤖 AI Model Selection")
+        
+        # Available AI models
+        ai_models = {
+            "OpenAI GPT-4o Mini": {
+                "key": "openai",
+                "description": "Fast and efficient for general tasks",
+                "cost": "Low",
+                "speed": "Fast"
+            },
+            "Claude 3 Opus": {
+                "key": "claude", 
+                "description": "Excellent for complex reasoning",
+                "cost": "High",
+                "speed": "Medium"
+            },
+            "Google Gemini 1.5 Flash": {
+                "key": "gemini",
+                "description": "Great for analysis and code generation", 
+                "cost": "Medium",
+                "speed": "Fast"
+            },
+            "DeepSeek Chat": {
+                "key": "deepseek",
+                "description": "Cost-effective alternative",
+                "cost": "Very Low", 
+                "speed": "Medium"
+            }
+        }
+        
+        # Initialize AI model preference
+        if 'selected_ai_model' not in st.session_state:
+            st.session_state.selected_ai_model = "openai"  # Default
+        
+        # Model selection radio buttons
+        selected_model = st.radio(
+            "Choose AI Model:",
+            options=list(ai_models.keys()),
+            index=list(ai_models.keys()).index([k for k, v in ai_models.items() if v["key"] == st.session_state.selected_ai_model][0]) if st.session_state.selected_ai_model in [v["key"] for v in ai_models.values()] else 0,
+            key="ai_model_selection"
+        )
+        
+        # Update session state
+        st.session_state.selected_ai_model = ai_models[selected_model]["key"]
+        
+        # Display model info
+        model_info = ai_models[selected_model]
+        st.markdown(f"""
+        **{selected_model}**
+        - {model_info['description']}
+        - Cost: {model_info['cost']}
+        - Speed: {model_info['speed']}
+        """)
+        
+        # Quick presets
+        st.markdown("**Quick Presets:**")
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            if st.button("🚀 All Tools", use_container_width=True):
+                for key in st.session_state.selected_tools:
+                    st.session_state.selected_tools[key] = True
+                st.rerun()
+        
+        with col2:
+            if st.button("⚡ Essential Only", use_container_width=True):
+                # Enable only essential tools
+                essential_tools = ["web_search", "tool_recommend"]
+                for key in st.session_state.selected_tools:
+                    st.session_state.selected_tools[key] = key in essential_tools
+                st.rerun()
+        
+        # Configuration export/import
+        with st.expander("⚙️ Configuration"):
+            config = {
+                "tools": st.session_state.selected_tools,
+                "ai_model": st.session_state.selected_ai_model
+            }
+            st.json(config)
+            
+            # Quick copy config
+            st.code(f"Tools: {selected_count}/{total_count} | Model: {selected_model}", language="text")
 
 async def get_agent_response(prompt, conversation_context):
     """Get response from the agent"""
@@ -371,6 +542,23 @@ def main():
     # Display sidebar
     display_sidebar()
     
+    # Configuration status banner
+    if 'selected_tools' in st.session_state and 'selected_ai_model' in st.session_state:
+        selected_tools_count = sum(1 for selected in st.session_state.selected_tools.values() if selected)
+        total_tools = len(st.session_state.selected_tools)
+        
+        # Model display mapping
+        model_names = {
+            "openai": "GPT-4o Mini",
+            "claude": "Claude 3 Opus", 
+            "gemini": "Gemini 1.5 Flash",
+            "deepseek": "DeepSeek Chat"
+        }
+        
+        current_model = model_names.get(st.session_state.selected_ai_model, "Unknown")
+        
+        st.info(f"🔧 **Active Configuration:** {selected_tools_count}/{total_tools} tools enabled | 🤖 Model: {current_model}")
+    
     # Welcome message for new users
     if not st.session_state.messages:
         st.markdown("""
@@ -418,6 +606,20 @@ def main():
         
         # Generate and display response
         with st.chat_message("assistant"):
+            # Show active tools before processing
+            if 'selected_tools' in st.session_state:
+                active_tools = [k for k, v in st.session_state.selected_tools.items() if v]
+                if active_tools:
+                    tool_names = {
+                        "web_search": "🔍 Web Search",
+                        "github_search": "🐙 GitHub",
+                        "python_tools": "🐍 Python",
+                        "tool_recommend": "🎯 AI Analysis",
+                        "data_viz": "📊 Visualization"
+                    }
+                    active_tool_display = " | ".join([tool_names.get(tool, tool) for tool in active_tools])
+                    st.caption(f"**Available tools:** {active_tool_display}")
+            
             with st.spinner("🤔 Thinking..."):
                 # Build conversation context from recent messages
                 context_messages = st.session_state.messages[-6:]  # Last 6 messages for context
