@@ -77,6 +77,14 @@ st.markdown("""
         max-height: 600px;
         overflow-y: auto;
     }
+    .live-indicator {
+        color: #28a745;
+        font-weight: bold;
+    }
+    .activity-refresh {
+        font-size: 0.8em;
+        color: #6c757d;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -103,6 +111,13 @@ def initialize_session_state():
     # Initialize cost tracker
     if 'cost_tracker' not in st.session_state:
         st.session_state.cost_tracker = CostTracker()
+    
+    # Initialize auto-refresh tracking
+    if 'last_activity_count' not in st.session_state:
+        st.session_state.last_activity_count = 0
+    
+    if 'auto_refresh' not in st.session_state:
+        st.session_state.auto_refresh = True
 
 # Load project context
 @st.cache_data
@@ -113,17 +128,39 @@ def get_project_context():
 def display_sidebar():
     """Enhanced sidebar with live activity tracking"""
     with st.sidebar:
-        # Live Activity Section
-        st.markdown("### 🔴 Live Activity")
+        # Simple live refresh controls
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            st.markdown("### 🔴 Live Activity")
+        with col2:
+            if st.button("🔄", help="Refresh", key="refresh_activity"):
+                st.rerun()
+        
+        # Auto-refresh checkbox
+        auto_refresh = st.checkbox("Auto-refresh (5s)", value=False, help="Automatically refresh activity data")
+        
+        # Simple auto-refresh using Streamlit's rerun
+        if auto_refresh:
+            import time
+            if 'last_refresh' not in st.session_state:
+                st.session_state.last_refresh = time.time()
+            
+            current_time = time.time()
+            if current_time - st.session_state.last_refresh > 5:  # 5 second intervals
+                st.session_state.last_refresh = current_time
+                st.rerun()
         
         activity_summary = activity_tracker.get_activity_summary()
         current = activity_summary.get("current")
         
+        # Current Activity Display
         if current and current["status"] == "running":
-            st.markdown(f"**{current['action']}**")
-            st.progress(current["progress"])
+            st.success(f"**Running:** {current['action']}")
+            progress_val = current.get("progress", 0) / 100.0
+            st.progress(progress_val)
             if current.get("details"):
-                st.caption(json.dumps(current["details"], indent=2))
+                with st.expander("Details", expanded=False):
+                    st.json(current["details"])
         else:
             st.info("No active operations")
         
@@ -132,15 +169,19 @@ def display_sidebar():
         recent_activities = activity_summary["recent"][-5:] if activity_summary["recent"] else []
         
         if recent_activities:
-            for activity in reversed(recent_activities):
-                status_icon = "✅" if activity["status"] == "complete" else "⏳"
-                with st.expander(f"{status_icon} {activity['time_str']} - {activity['tool']}", 
-                               expanded=False):
-                    st.json({
-                        "action": activity["action"],
-                        "duration": f"{activity.get('duration', 0):.2f}s",
-                        "result": activity.get("result_preview", "")
-                    })
+            for i, activity in enumerate(reversed(recent_activities)):
+                status_icon = "✅" if activity["status"] == "complete" else "⏳" if activity["status"] == "running" else "❌"
+                
+                # Create a compact display
+                with st.container():
+                    st.markdown(f"**{status_icon} {activity['tool']}** - {activity['time_str']}")
+                    if st.button(f"View details", key=f"activity_{i}"):
+                        st.json({
+                            "action": activity["action"],
+                            "duration": f"{activity.get('duration', 0):.2f}s",
+                            "result": activity.get("result_preview", "")
+                        })
+                    st.markdown("---")
         else:
             st.info("No recent activities")
         
