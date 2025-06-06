@@ -241,8 +241,8 @@ async def main():
                     if len(result.output) > 500:
                         memory_content += "..."
                     
-                    # Save memory synchronously
-                    memory_id = memory_manager.save_memory(
+                    # Save memory asynchronously for better UI responsiveness
+                    memory_id = memory_manager.save_memory_async(
                         user_id=user_id,
                         content=memory_content,
                         metadata={
@@ -253,7 +253,7 @@ async def main():
                         },
                         category="tool_recommendation"
                     )
-                    print(f"💾 Memory saved (ID: {memory_id})")
+                    print(f"💾 Memory saved asynchronously")
                 except Exception as e:
                     print(f"⚠️ Could not save memory: {e}")
             # MEMORY INTEGRATION END
