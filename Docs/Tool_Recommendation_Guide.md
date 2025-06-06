@@ -1,10 +1,42 @@
-# Development Tool Recommendation System - Usage Examples
+# Development Tool Recommendation System - Usage Guide
 
-This document demonstrates how to use the intelligent tool recommendation system integrated into the Docy_Search project.
+This document demonstrates how to use the intelligent tool recommendation system with **memory capabilities** and **dual interface options**.
+
+## 🚀 Getting Started
+
+### Choose Your Interface
+
+#### 🌐 **Web Interface (Recommended)**
+```bash
+streamlit run main_ui.py --server.port 8555
+# Open: http://localhost:8555
+```
+- Beautiful chat interface
+- Real-time memory indicators  
+- Session persistence across browser sessions
+- Easy copy/paste for code and commands
+
+#### 🖥️ **Command Line Interface**
+```bash
+python app.py
+```
+- Terminal-based interaction
+- Same memory system and functionality
+- Great for scriptable workflows
+
+## 🧠 Memory-Enhanced Features
+
+The system now remembers your preferences and past discussions:
+
+- **Context Continuity**: Builds on previous conversations
+- **Personalized Recommendations**: Learns from your tech stack preferences  
+- **Session Persistence**: Maintains history across app restarts
+- **Smart Context Loading**: Automatically references relevant past discussions
 
 ## Overview
 
 The tool recommendation system provides:
+- **🧠 Intelligent Memory**: Persistent conversation history with semantic search
 - **Live Tool Search**: Using Brave API for current tool discovery
 - **AI-Powered Analysis**: Gemini AI evaluates tools for relevance, reliability, and ease of use
 - **Installation Guides**: Automatic generation of installation instructions
