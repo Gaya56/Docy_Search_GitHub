@@ -2,30 +2,66 @@
 
 ## 🎯 What We Built
 
-A **modular, intelligent tool recommendation system** that seamlessly integrates with your existing security analysis framework. The system uses live web searches and AI analysis to help developers, cybersecurity professionals, and CTF participants discover, evaluate, and install the best technical tools for their needs.
+A **modular, intelligent tool recommendation system** with **persistent memory capabilities** and **dual interface options** that seamlessly integrates with your existing framework. The system uses live web searches, AI analysis, and **smart memory storage** to help developers discover, evaluate, and install the best technical tools while learning from past interactions.
 
 ## 🏗️ Architecture Overview
 
 ### Core Components
 
-1. **Tool Recommendation MCP Server** (`pentesting_tools/tool_recommendation.py`)
-   - 5 specialized functions for different recommendation workflows
-   - Built using the same FastMCP pattern as existing servers
-   - Integrated with Brave Search API and Gemini AI
+1. **🧠 Intelligent Memory System** (`memory/`)
+   - SQLite-based persistence with OpenAI embeddings
+   - Semantic search for relevant conversation history
+   - User session management across app restarts
+   - Graceful degradation when embeddings unavailable
 
-2. **Enhanced Main Application** (`app.py`)
-   - Updated to include tool recommendation server
-   - Expanded system prompt for dual-purpose functionality
+2. **🌐 Streamlit Web Interface** (`main_ui.py`)
+   - Modern, responsive chat interface
+   - Real-time memory indicators and session info
+   - Full integration with memory and tool recommendation systems
+   - Beautiful UI with sidebar status information
+
+3. **🖥️ Command Line Interface** (`app.py`)
+   - Terminal-based interaction with same functionality
+   - Memory integration for persistent conversations
    - Maintains existing security analysis capabilities
 
-3. **Comprehensive Documentation**
-   - Usage guide with practical examples
-   - Installation and configuration instructions
-   - Demo script for testing without API keys
+4. **Tool Recommendation MCP Server** (`tool_recommendation/`)
+   - 5 specialized functions for different recommendation workflows
+   - Built using FastMCP pattern for modular architecture
+   - Integrated with Brave Search API and Gemini AI
 
 ## 🔧 Key Features Implemented
 
-### 1. Live Tool Discovery
+### 1. 🧠 Memory System Features
+```python
+# Memory Manager with OpenAI embeddings
+memory_manager = MemoryManager(db_path="data/memories.db", model=model)
+
+# Automatic memory saving for significant interactions  
+memory_id = memory_manager.save_memory(
+    user_id=user_id,
+    content=memory_content,
+    metadata={...},
+    category="tool_recommendation"
+)
+```
+- **Persistent Conversations**: Remembers preferences and past discussions
+- **Semantic Search**: Uses OpenAI `text-embedding-3-small` for intelligent retrieval
+- **Session Continuity**: Maintains context across app restarts
+
+### 2. 🌐 Web Interface Features
+```python
+# Streamlit UI with full memory integration
+if memory_manager:
+    st.success("✅ Memory system active")
+    # Display memory save indicators
+    st.caption(f"💾 Memory saved (ID: {memory_id})")
+```
+- **Beautiful Chat Interface**: Modern Streamlit UI with real-time responses
+- **Memory Indicators**: Visual feedback for memory operations
+- **Session Management**: Persistent user sessions across browser sessions
+
+### 3. Live Tool Discovery
 ```python
 @mcp.tool()
 async def search_tools(query: str, category: str = "general") -> str:
@@ -34,7 +70,7 @@ async def search_tools(query: str, category: str = "general") -> str:
 - Category-based search enhancement
 - Smart query expansion based on use case
 
-### 2. AI-Powered Analysis
+### 4. AI-Powered Analysis
 ```python
 @mcp.tool()
 async def analyze_tools(search_results: str, requirements: str = "") -> str:
@@ -43,7 +79,7 @@ async def analyze_tools(search_results: str, requirements: str = "") -> str:
 - Multi-criteria ranking (relevance, reliability, ease of use)
 - Customized recommendations based on user requirements
 
-### 3. Installation Automation
+### 5. Installation Automation
 ```python
 @mcp.tool()
 async def get_installation_guide(tool_name: str, os_type: str = "linux") -> str:
@@ -108,26 +144,83 @@ User: "Compare nmap vs masscan for port scanning"
 The tool recommendation system seamlessly integrates with your existing security analysis tools:
 
 - **Security Analysis** → **Tool Recommendations** → **Installation Guides**
-- Memory system tracks both security findings AND recommended tools
+- **🧠 Memory system** tracks both security findings AND recommended tools
 - AI reports can include tool suggestions for remediation
 - Permission system applies to both security scans and tool searches
+- **Dual interface** supports both web and command line workflows
 
 ## 📊 Intelligence Features
 
+### 🧠 Memory-Enhanced Intelligence
+- **Conversation History**: Remembers past tool preferences and discussions
+- **Semantic Search**: Uses OpenAI embeddings to find relevant previous interactions
+- **Personalized Recommendations**: Improves suggestions based on user history
+- **Context Continuity**: Builds on previous conversations across sessions
+
 ### Smart Categorization
-- **pentesting**: Penetration testing tools
-- **cybersecurity**: Defensive security tools  
-- **ctf**: CTF and competition tools
-- **network**: Network analysis tools
-- **web**: Web application security
-- **forensics**: Digital forensics tools
-- **reverse**: Reverse engineering tools
-- **osint**: Open source intelligence
+- **web**: Web development tools (React, Vue, Angular, etc.)
+- **mobile**: Mobile app development (React Native, Flutter, etc.)
+- **desktop**: Desktop application frameworks (Electron, Tauri, etc.)
+- **database**: Database management and tools (PostgreSQL, MongoDB, etc.)
+- **devops**: DevOps and deployment tools (Docker, Kubernetes, etc.)
+- **testing**: Testing frameworks and tools (Jest, Pytest, Cypress, etc.)
+- **design**: Design and UI tools (Figma, Sketch, etc.)
+- **data**: Data science and analytics tools (Pandas, Jupyter, etc.)
+- **ai**: AI/ML frameworks (TensorFlow, PyTorch, etc.)
+- **security**: Security analysis and penetration testing tools
 - **general**: Development and utility tools
 
 ### AI Evaluation Criteria
 1. **Relevance Score** (1-10)
 2. **Reliability Assessment** (maturity, maintenance)
+3. **Community Support** (GitHub stars, documentation quality)
+4. **Security & Trust** (known vulnerabilities, reputation)
+5. **Installation Complexity** (ease of setup)
+6. **Use Case Fit** (matches user requirements)
+
+## ✅ Current Status: FULLY OPERATIONAL
+
+### 🧠 Memory System
+- ✅ **SQLite Database**: Persistent conversation storage
+- ✅ **OpenAI Embeddings**: Real `text-embedding-3-small` integration  
+- ✅ **Semantic Search**: Cosine similarity calculations working
+- ✅ **Session Management**: Persistent user sessions across restarts
+- ✅ **Graceful Degradation**: Works with or without embeddings
+
+### 🌐 Web Interface (Streamlit)
+- ✅ **Modern UI**: Beautiful chat interface with real-time responses
+- ✅ **Memory Integration**: Live memory indicators and status
+- ✅ **Session Persistence**: User sessions work across browser restarts
+- ✅ **Full Feature Parity**: All tool recommendation features available
+
+### 🖥️ Command Line Interface
+- ✅ **Terminal Chat**: Full memory integration in CLI
+- ✅ **Backward Compatible**: Existing functionality unchanged
+- ✅ **Same Features**: Identical capabilities to web interface
+
+### 🔧 Tool Recommendation Engine
+- ✅ **Live Search**: Brave API integration working
+- ✅ **AI Analysis**: Gemini AI evaluation and ranking
+- ✅ **Installation Guides**: Automatic setup instructions
+- ✅ **GitHub Integration**: Repository discovery and analysis
+- ✅ **Multi-AI Support**: OpenAI, Claude, Gemini, DeepSeek
+
+## 🚀 Getting Started
+
+### Quick Launch Options
+
+**🌐 Web Interface (Recommended):**
+```bash
+streamlit run main_ui.py --server.port 8555
+# Open: http://localhost:8555
+```
+
+**🖥️ Command Line:**
+```bash
+python app.py
+```
+
+Both interfaces share the same intelligent memory system and provide the same powerful tool recommendation capabilities with continuous learning from your interactions.
 3. **Installation Complexity** (Easy/Medium/Hard)
 4. **Community Support** (documentation, forums)
 5. **Security & Trust** (code quality, reputation)

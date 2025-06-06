@@ -14,6 +14,14 @@ This repository contains an intelligent, context-aware tool recommendation syste
 - **Graceful Degradation**: ✅ **TESTED** - Works perfectly with or without memory features
 - **Real Embeddings**: ✅ **INTEGRATED** - Live OpenAI embedding generation for semantic similarity
 
+### 🌐 **✅ NEW: Beautiful Web Interface**
+
+- **Streamlit UI**: ✅ **WORKING** - Modern web interface for the assistant (`main_ui.py`)
+- **Dual Interface**: ✅ **AVAILABLE** - Both command line (`app.py`) and web UI (`streamlit run main_ui.py`)
+- **Memory Integration**: ✅ **WORKING** - Full memory system support in web interface
+- **Session Persistence**: ✅ **WORKING** - User sessions work across both interfaces
+- **Real-time Updates**: ✅ **WORKING** - Live conversation with memory saving indicators
+
 ### Tool Recommendation Engine
 
 - **Live Web Search**: Uses Brave API for current tool discovery
@@ -58,6 +66,7 @@ Built on **Pydantic AI** and **Model Context Protocol (MCP)** for clean, modular
 
 ```text
 app.py                          # Main chat interface with memory integration
+main_ui.py                      # 🆕 Streamlit Web UI for the assistant
 memory/
 ├── memory_manager.py          # 🆕 AI-powered memory operations with embeddings
 ├── sqlite_memory.py           # 🆕 SQLite database operations for persistence
@@ -72,9 +81,10 @@ project_context.md             # Your project details (auto-loaded)
 data/
 └── memories.db                # 🆕 SQLite database for conversation history
 .user_session                  # 🆕 Persistent user session ID
+streamlit_guide.md             # 🆕 Streamlit UI usage guide
 ```
 
-**Current Status:** ✅ **FULLY OPERATIONAL** - Complete system with **working intelligent memory capabilities** including real OpenAI embeddings, tool recommendation, GitHub integration, multi-AI support, interactive chat with permission prompts, project context awareness, and comprehensive development tool analysis capabilities. The memory system has been successfully tested and integrated with zero breaking changes.
+**Current Status:** ✅ **FULLY OPERATIONAL** - Complete system with **working intelligent memory capabilities** including real OpenAI embeddings, **beautiful Streamlit web interface**, tool recommendation, GitHub integration, multi-AI support, interactive chat with permission prompts, project context awareness, and comprehensive development tool analysis capabilities. Both command line and web interfaces are fully functional with zero breaking changes.
 
 ## 🚀 Quick Start
 
@@ -127,9 +137,19 @@ The assistant will automatically load this context and provide more targeted rec
 
 ### 4. Start the Application
 
+Choose your preferred interface:
+
+#### 🖥️ **Command Line Interface (Terminal)**
 ```bash
 # Start the interactive chat with memory system
 python app.py
+```
+
+#### 🌐 **Web Interface (Streamlit UI)**
+```bash
+# Start the beautiful web interface
+streamlit run main_ui.py --server.port 8555
+# Then open: http://localhost:8555
 ```
 
 **🧠 Memory System Features:**
@@ -185,7 +205,27 @@ The intelligent memory system has been **successfully implemented and integrated
 
 ## 💡 Usage Examples
 
-### 🧠 Memory-Enhanced Interactions
+### 🌐 **Web Interface (Streamlit)**
+
+1. **Start the Web UI:**
+   ```bash
+   streamlit run main_ui.py --server.port 8555
+   ```
+
+2. **Access in Browser:**
+   - Open: `http://localhost:8555`
+   - Beautiful chat interface with real-time responses
+   - Memory status indicators in sidebar
+   - Session persistence across browser sessions
+
+### 🖥️ **Command Line Interface**
+
+1. **Start Terminal Chat:**
+   ```bash
+   python app.py
+   ```
+
+### 🧠 Memory-Enhanced Interactions (Both Interfaces)
 
 ```text
 # First conversation
@@ -287,7 +327,9 @@ Each tool recommendation includes:
 
 ```text
 Docy_Search/
-├── app.py                              # Main application with memory integration
+├── app.py                              # Main application with memory integration (CLI)
+├── main_ui.py                          # 🆕 Streamlit Web UI for the assistant
+├── streamlit_guide.md                  # 🆕 Streamlit UI usage guide
 ├── memory/                             # 🆕 Intelligent Memory System
 │   ├── memory_manager.py              # 🆕 AI-powered memory operations with embeddings
 │   ├── sqlite_memory.py               # 🆕 SQLite database operations for persistence
@@ -300,7 +342,7 @@ Docy_Search/
 ├── brave_search.py                    # Search API integration
 ├── python_tools.py                    # Utility functions
 ├── project_context.md                 # Your project details (auto-loaded)
-├── requirements.txt                   # Dependencies (including memory system)
+├── requirements.txt                   # Dependencies (including memory system + Streamlit)
 ├── .env                              # API keys (create this)
 ├── tool_recommendation/
 │   ├── mcp_server.py                 # Core recommendation engine
@@ -345,6 +387,8 @@ For detailed usage examples, see `Docs/Tool_Recommendation_Guide.md`.
 ### ✅ Fully Implemented Features
 
 - **🧠 Intelligent Memory**: ✅ **OPERATIONAL** - Persistent conversation history with semantic search using OpenAI embeddings
+- **🌐 Web Interface**: ✅ **OPERATIONAL** - Beautiful Streamlit UI with real-time chat and memory indicators
+- **🖥️ CLI Interface**: ✅ **OPERATIONAL** - Command line interface for terminal users
 - **🔍 Tool Discovery**: ✅ **OPERATIONAL** - Live web search with AI-powered analysis
 - **📊 Smart Rankings**: ✅ **OPERATIONAL** - Multi-criteria tool evaluation and comparison
 - **📚 Installation Guides**: ✅ **OPERATIONAL** - Automatic generation of setup instructions
@@ -354,7 +398,12 @@ For detailed usage examples, see `Docs/Tool_Recommendation_Guide.md`.
 - **🤖 Multi-AI Support**: ✅ **OPERATIONAL** - OpenAI, Claude, Gemini, and DeepSeek compatibility
 - **📱 Category Support**: ✅ **OPERATIONAL** - Web, mobile, desktop, database, DevOps, testing, design, data science, AI/ML, game development, security, productivity
 
-### 🚀 Ready to Use - Memory System Live!
+### 🚀 Ready to Use - Memory System + Web UI Live!
 
-Your intelligent development assistant with **fully operational persistent memory** is ready to help with tool discovery, GitHub repository analysis, and project-specific recommendations that improve over time. The memory system uses real OpenAI embeddings for semantic search and maintains conversation context across sessions. Simply run `python app.py` and start building a conversation history that makes each interaction smarter than the last!
+Your intelligent development assistant with **fully operational persistent memory** and **beautiful web interface** is ready to help with tool discovery, GitHub repository analysis, and project-specific recommendations that improve over time. Choose between:
+
+- **🌐 Web Interface**: Run `streamlit run main_ui.py --server.port 8555` for a beautiful browser experience
+- **🖥️ Command Line**: Run `python app.py` for terminal-based interaction
+
+Both interfaces share the same memory system using real OpenAI embeddings for semantic search and maintain conversation context across sessions. Start building a conversation history that makes each interaction smarter than the last!
 
