@@ -27,6 +27,8 @@ Enterprise-grade memory capabilities with async operations, database migrations,
 - ✅ **Streamlit Web UI** - Beautiful, responsive web interface with memory management
 - ✅ **Session Persistence** - Conversations continue across restarts
 - ✅ **Memory Explorer** - Visual interface for conversation history
+- ✅ **Tool Selection Dashboard** - Choose which tools to enable for conversations
+- ✅ **AI Model Selection** - Switch between OpenAI, Claude, Gemini, and DeepSeek models
 
 ## 🏗️ **Architecture Overview**
 
@@ -141,6 +143,9 @@ The intelligent memory system has been **successfully implemented and integrated
    - Beautiful chat interface with real-time responses
    - Memory status indicators in sidebar
    - Session persistence across browser sessions
+   - **Tool Selection Dashboard** - Choose which tools to enable
+   - **AI Model Selection** - Switch between different AI models
+   - **Live Activity Tracking** - Monitor tool usage and API costs
 
 ### 🖥️ **Command Line Interface**
 
@@ -212,6 +217,31 @@ Bot: ✅ I have your project context loaded and ready to help!
 ```
 
 ## 🔧 Advanced Features
+
+### Tool Selection Dashboard
+
+The Streamlit interface includes an interactive tool selection dashboard where you can:
+
+- **🔍 Web Search** - Enable/disable live web search for development tools
+- **🐙 GitHub Integration** - Toggle GitHub repository access and code examples  
+- **🐍 Python Tools** - Control Python-specific development utilities
+- **🎯 Tool Recommendation** - Enable AI-powered tool analysis and recommendations
+- **📊 Data Visualization** - Toggle chart and visualization capabilities
+
+**Quick Presets:**
+- **🚀 All Tools** - Enable all available tools for maximum capability
+- **⚡ Essential Only** - Enable only web search and tool recommendations for faster responses
+
+### AI Model Selection
+
+Choose your preferred AI model based on your needs:
+
+- **OpenAI GPT-4o Mini** - Fast and efficient for general tasks (Low cost, Fast speed)
+- **Claude 3 Opus** - Excellent for complex reasoning (High cost, Medium speed)
+- **Google Gemini 1.5 Flash** - Great for analysis and code generation (Medium cost, Fast speed)
+- **DeepSeek Chat** - Cost-effective alternative (Very low cost, Medium speed)
+
+The interface shows real-time cost and speed information to help you make the best choice for your use case.
 
 ### Tool Categories
 
@@ -312,6 +342,9 @@ For detailed usage examples, see `Docs/Tool_Recommendation_Guide.md`.
 
 - **🧠 Intelligent Memory**: ✅ **OPERATIONAL** - Persistent conversation history with semantic search using OpenAI embeddings
 - **🌐 Web Interface**: ✅ **OPERATIONAL** - Beautiful Streamlit UI with real-time chat and memory indicators
+- **🔧 Tool Selection Dashboard**: ✅ **OPERATIONAL** - Interactive tool selection with quick presets and live configuration
+- **🤖 AI Model Selection**: ✅ **OPERATIONAL** - Dynamic model switching with cost/speed information
+- **📊 Live Activity Tracking**: ✅ **OPERATIONAL** - Real-time monitoring of tool usage and API costs
 - **🖥️ CLI Interface**: ✅ **OPERATIONAL** - Command line interface for terminal users
 - **🔍 Tool Discovery**: ✅ **OPERATIONAL** - Live web search with AI-powered analysis
 - **📊 Smart Rankings**: ✅ **OPERATIONAL** - Multi-criteria tool evaluation and comparison
@@ -322,12 +355,20 @@ For detailed usage examples, see `Docs/Tool_Recommendation_Guide.md`.
 - **🤖 Multi-AI Support**: ✅ **OPERATIONAL** - OpenAI, Claude, Gemini, and DeepSeek compatibility
 - **📱 Category Support**: ✅ **OPERATIONAL** - Web, mobile, desktop, database, DevOps, testing, design, data science, AI/ML, game development, security, productivity
 
-### 🚀 Ready to Use - Memory System + Web UI Live!
+### 🚀 Ready to Use - Enhanced Web Interface with Tool & Model Selection!
 
-Your intelligent development assistant with **fully operational persistent memory** and **beautiful web interface** is ready to help with tool discovery, GitHub repository analysis, and project-specific recommendations that improve over time. Choose between:
+Your intelligent development assistant now features a **fully customizable interface** with:
 
-- **🌐 Web Interface**: Run `streamlit run main_ui.py --server.port 8555` for a beautiful browser experience
-- **🖥️ Command Line**: Run `python app.py` for terminal-based interaction
+- **🔧 Tool Selection Dashboard** - Choose exactly which tools to enable for each conversation
+- **🤖 Dynamic AI Model Selection** - Switch between OpenAI, Claude, Gemini, and DeepSeek in real-time
+- **📊 Live Activity & Cost Tracking** - Monitor tool usage and API costs with automatic refresh
+- **🧠 Persistent Memory** - All conversations saved with semantic search using OpenAI embeddings
+- **🌐 Beautiful Web Interface** - Responsive Streamlit UI with real-time configuration
 
-Both interfaces share the same memory system using real OpenAI embeddings for semantic search and maintain conversation context across sessions. Start building a conversation history that makes each interaction smarter than the last!
+Choose your experience:
+
+- **🌐 Web Interface**: Run `streamlit run main_ui.py --server.port 8555` for the enhanced browser experience with tool selection
+- **🖥️ Command Line**: Run `python app.py` for traditional terminal-based interaction
+
+The web interface lets you customize your AI assistant on-the-fly - select only the tools you need, choose the AI model that fits your budget and speed requirements, and watch real-time activity as your assistant works. Every conversation builds your personalized knowledge base that makes each interaction smarter than the last!
 
