@@ -138,6 +138,47 @@ def display_sidebar():
             st.session_state.messages = []
             st.rerun()
         
+        # Memory management section
+        if memory_manager:
+            st.markdown("### 🧠 Memory Management")
+            
+            # Get memory stats
+            if st.button("📊 Memory Stats", use_container_width=True):
+                try:
+                    async def get_stats():
+                        return await memory_manager.async_manager.get_user_memory_stats(st.session_state.user_id)
+                    
+                    stats = asyncio.run(get_stats())
+                    st.write(f"**Total memories:** {stats['total']}")
+                    st.write(f"**Active memories:** {stats['active']}")
+                    st.write(f"**Compressed:** {stats['compressed']}")
+                    st.write(f"**Archived:** {stats['archived']}")
+                except Exception as e:
+                    st.error(f"Error getting stats: {e}")
+            
+            # Memory maintenance
+            if st.button("🔧 Run Maintenance", use_container_width=True):
+                try:
+                    async def run_maintenance():
+                        return await memory_manager.async_manager.perform_memory_maintenance()
+                    
+                    with st.spinner("Running memory maintenance..."):
+                        results = asyncio.run(run_maintenance())
+                        st.success(f"Compressed: {results['compressed']}, Archived: {results['archived']} memories")
+                except Exception as e:
+                    st.error(f"Error running maintenance: {e}")
+            
+            # Clear user memories
+            if st.button("🗑️ Clear All Memories", use_container_width=True):
+                try:
+                    async def clear_memories():
+                        return await memory_manager.async_manager.clear_user_memories(st.session_state.user_id)
+                    
+                    cleared = asyncio.run(clear_memories())
+                    st.success(f"Cleared {cleared} memories")
+                except Exception as e:
+                    st.error(f"Error clearing memories: {e}")
+        
         # Port suggestion for easier development
         port = random.randint(8502, 8599)
         st.markdown("### 🚀 Development")
@@ -185,19 +226,24 @@ def save_memory(prompt, response):
         if len(response) > 500:
             memory_content += "..."
         
-        # Save memory
-        memory_id = memory_manager.save_memory(
-            user_id=st.session_state.user_id,
-            content=memory_content,
-            metadata={
-                "timestamp": datetime.now().isoformat(),
-                "user_input_length": len(prompt),
-                "response_length": len(response),
-                "category": "tool_recommendation",
-                "ui": "streamlit"
-            },
-            category="tool_recommendation"
-        )
+        # Save memory asynchronously using asyncio.run for Streamlit compatibility
+        async def async_save():
+            return await memory_manager.async_manager.save_memory(
+                user_id=st.session_state.user_id,
+                content=memory_content,
+                metadata={
+                    "timestamp": datetime.now().isoformat(),
+                    "user_input_length": len(prompt),
+                    "response_length": len(response),
+                    "category": "tool_recommendation",
+                    "ui": "streamlit"
+                },
+                category="tool_recommendation"
+            )
+        
+        # Run async operation in a way that's compatible with Streamlit
+        import asyncio
+        memory_id = asyncio.run(async_save())
         return True, memory_id
     
     except Exception as e:

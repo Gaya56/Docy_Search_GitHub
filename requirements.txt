@@ -17,3 +17,5 @@ fastmcp
 streamlit
 matplotlib
 plotly
+aiosqlite
+aiofiles
