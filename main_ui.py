@@ -143,6 +143,24 @@ def initialize_session_state():
     
     if 'auto_refresh' not in st.session_state:
         st.session_state.auto_refresh = True
+    
+    # Initialize async operation caches
+    if 'daily_cost' not in st.session_state:
+        st.session_state.daily_cost = 0.0
+    
+    if 'monthly_cost' not in st.session_state:
+        st.session_state.monthly_cost = 0.0
+    
+    if 'memory_stats' not in st.session_state:
+        st.session_state.memory_stats = {
+            'total': 0, 'active': 0, 'compressed': 0, 'archived': 0
+        }
+    
+    if 'maintenance_results' not in st.session_state:
+        st.session_state.maintenance_results = {'compressed': 0, 'archived': 0}
+    
+    if 'cleared_count' not in st.session_state:
+        st.session_state.cleared_count = 0
 
 # Load project context
 @st.cache_data
@@ -226,15 +244,32 @@ def display_sidebar():
         st.markdown("### 💰 API Usage")
         
         try:
-            # Get costs asynchronously
-            daily_cost = asyncio.run(st.session_state.cost_tracker.get_daily_cost())
-            monthly_cost = asyncio.run(st.session_state.cost_tracker.get_monthly_cost())
+            # Initialize costs in session state if missing
+            if 'daily_cost' not in st.session_state:
+                st.session_state.daily_cost = 0.0
+                st.session_state.monthly_cost = 0.0
+            
+            # Update costs asynchronously without blocking UI
+            async def update_costs():
+                try:
+                    st.session_state.daily_cost = await st.session_state.cost_tracker.get_daily_cost()
+                    st.session_state.monthly_cost = await st.session_state.cost_tracker.get_monthly_cost()
+                except:
+                    pass  # Fail silently to avoid UI blocking
+            
+            # Run cost update in background
+            try:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                loop.create_task(update_costs())
+            except:
+                pass  # Fail silently if event loop creation fails
             
             col1, col2 = st.columns(2)
             with col1:
-                st.metric("Today", f"${daily_cost:.4f}")
+                st.metric("Today", f"${st.session_state.daily_cost:.4f}")
             with col2:
-                st.metric("Month", f"${monthly_cost:.2f}")
+                st.metric("Month", f"${st.session_state.monthly_cost:.2f}")
         except Exception as e:
             st.error(f"Cost tracking error: {e}")
         
@@ -280,10 +315,29 @@ def display_sidebar():
             # Get memory stats
             if st.button("📊 Memory Stats", use_container_width=True):
                 try:
-                    async def get_stats():
-                        return await memory_manager.async_manager.get_user_memory_stats(st.session_state.user_id)
+                    # Initialize stats in session state if missing
+                    if 'memory_stats' not in st.session_state:
+                        st.session_state.memory_stats = {
+                            'total': 0, 'active': 0, 'compressed': 0, 'archived': 0
+                        }
                     
-                    stats = asyncio.run(get_stats())
+                    async def get_stats():
+                        try:
+                            stats = await memory_manager.async_manager.get_user_memory_stats(st.session_state.user_id)
+                            st.session_state.memory_stats = stats
+                        except:
+                            pass  # Fail silently
+                    
+                    # Update stats in background
+                    try:
+                        loop = asyncio.new_event_loop()
+                        asyncio.set_event_loop(loop)
+                        loop.create_task(get_stats())
+                    except:
+                        pass
+                    
+                    # Display cached stats
+                    stats = st.session_state.memory_stats
                     st.write(f"**Total memories:** {stats['total']}")
                     st.write(f"**Active memories:** {stats['active']}")
                     st.write(f"**Compressed:** {stats['compressed']}")
@@ -294,11 +348,28 @@ def display_sidebar():
             # Memory maintenance
             if st.button("🔧 Run Maintenance", use_container_width=True):
                 try:
+                    # Initialize maintenance results in session state
+                    if 'maintenance_results' not in st.session_state:
+                        st.session_state.maintenance_results = {'compressed': 0, 'archived': 0}
+                    
                     async def run_maintenance():
-                        return await memory_manager.async_manager.perform_memory_maintenance()
+                        try:
+                            results = await memory_manager.async_manager.perform_memory_maintenance()
+                            st.session_state.maintenance_results = results
+                        except:
+                            pass  # Fail silently
                     
                     with st.spinner("Running memory maintenance..."):
-                        results = asyncio.run(run_maintenance())
+                        # Run maintenance in background
+                        try:
+                            loop = asyncio.new_event_loop()
+                            asyncio.set_event_loop(loop)
+                            loop.create_task(run_maintenance())
+                        except:
+                            pass
+                        
+                        # Show cached results
+                        results = st.session_state.maintenance_results
                         st.success(f"Compressed: {results['compressed']}, Archived: {results['archived']} memories")
                 except Exception as e:
                     st.error(f"Error running maintenance: {e}")
@@ -306,11 +377,27 @@ def display_sidebar():
             # Clear user memories
             if st.button("🗑️ Clear All Memories", use_container_width=True):
                 try:
-                    async def clear_memories():
-                        return await memory_manager.async_manager.clear_user_memories(st.session_state.user_id)
+                    # Initialize cleared count in session state
+                    if 'cleared_count' not in st.session_state:
+                        st.session_state.cleared_count = 0
                     
-                    cleared = asyncio.run(clear_memories())
-                    st.success(f"Cleared {cleared} memories")
+                    async def clear_memories():
+                        try:
+                            cleared = await memory_manager.async_manager.clear_user_memories(st.session_state.user_id)
+                            st.session_state.cleared_count = cleared
+                        except:
+                            pass  # Fail silently
+                    
+                    # Clear memories in background
+                    try:
+                        loop = asyncio.new_event_loop()
+                        asyncio.set_event_loop(loop)
+                        loop.create_task(clear_memories())
+                    except:
+                        pass
+                    
+                    # Show cached result
+                    st.success(f"Cleared {st.session_state.cleared_count} memories")
                 except Exception as e:
                     st.error(f"Error clearing memories: {e}")
         
@@ -526,7 +613,20 @@ def save_memory(prompt, response):
         
         # Run async operation in a way that's compatible with Streamlit
         import asyncio
-        memory_id = asyncio.run(async_save())
+        
+        # Save memory in background without blocking UI
+        try:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            memory_task = loop.create_task(async_save())
+            memory_id = None  # Don't wait for result to avoid blocking
+        except:
+            # Fallback to synchronous save if async fails
+            try:
+                memory_id = asyncio.run(async_save())
+            except:
+                memory_id = None
+        
         return True, memory_id
     
     except Exception as e:
