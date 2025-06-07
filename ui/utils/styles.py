@@ -200,22 +200,6 @@ def get_main_styles() -> str:
             border-radius: 2px;
         }
         
-        /* Responsive design improvements */
-        @media (max-width: 768px) {
-            .main-header {
-                font-size: 2rem;
-            }
-            
-            .activity-card, .cost-card, .memory-card {
-                padding: 0.8rem;
-            }
-            
-            .configuration-banner {
-                padding: 0.6rem;
-                font-size: 0.9rem;
-            }
-        }
-        
         /* Streamlit specific overrides */
         .stButton > button {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -240,29 +224,6 @@ def get_main_styles() -> str:
             font-weight: 500;
             color: #34495e;
         }
-        
-        /* Custom scrollbar for sidebar */
-        .css-1d391kg {
-            scrollbar-width: thin;
-            scrollbar-color: #74b9ff #f1f3f4;
-        }
-        
-        .css-1d391kg::-webkit-scrollbar {
-            width: 6px;
-        }
-        
-        .css-1d391kg::-webkit-scrollbar-track {
-            background: #f1f3f4;
-        }
-        
-        .css-1d391kg::-webkit-scrollbar-thumb {
-            background: #74b9ff;
-            border-radius: 3px;
-        }
-        
-        .css-1d391kg::-webkit-scrollbar-thumb:hover {
-            background: #0984e3;
-        }
     </style>
     """
 
@@ -276,26 +237,24 @@ def get_chat_styles() -> str:
     """
     return """
     <style>
-        .chat-container {
-            max-height: 600px;
-            overflow-y: auto;
-            padding: 1rem;
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            border-radius: 10px;
-            margin-bottom: 1rem;
+        .welcome-message {
+            background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3);
         }
         
-        .chat-input-container {
-            background: white;
-            padding: 1rem;
-            border-radius: 10px;
-            border: 2px solid #e9ecef;
-            margin-bottom: 1rem;
-            transition: border-color 0.3s ease;
-        }
-        
-        .chat-input-container:focus-within {
-            border-color: #74b9ff;
+        .tool-status-active {
+            background: linear-gradient(135deg, #00b894 0%, #00cec9 100%);
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            margin: 0.2rem;
+            display: inline-block;
         }
         
         .chat-response-container {
@@ -305,58 +264,6 @@ def get_chat_styles() -> str:
             border: 1px solid #e9ecef;
             margin: 1rem 0;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-        }
-        
-        .thinking-indicator {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 2rem;
-            color: #74b9ff;
-            font-style: italic;
-        }
-        
-        .thinking-dots {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background-color: #74b9ff;
-            margin: 0 2px;
-            animation: thinking 1.4s infinite ease-in-out both;
-        }
-        
-        .thinking-dots:nth-child(1) { animation-delay: -0.32s; }
-        .thinking-dots:nth-child(2) { animation-delay: -0.16s; }
-        
-        @keyframes thinking {
-            0%, 80%, 100% { 
-                transform: scale(0);
-                opacity: 0.5;
-            } 
-            40% { 
-                transform: scale(1);
-                opacity: 1;
-            }
-        }
-        
-        .memory-status-success {
-            color: #28a745;
-            font-size: 0.85rem;
-            margin-top: 0.5rem;
-        }
-        
-        .memory-status-info {
-            color: #17a2b8;
-            font-size: 0.85rem;
-            margin-top: 0.5rem;
-        }
-        
-        .chat-timestamp {
-            color: #6c757d;
-            font-size: 0.75rem;
-            margin-top: 0.5rem;
-            text-align: right;
         }
     </style>
     """
@@ -380,43 +287,11 @@ def get_sidebar_styles() -> str:
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
         
-        .sidebar-metric-value {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: white;
-        }
-        
-        .sidebar-metric-label {
-            font-size: 0.8rem;
-            color: rgba(255, 255, 255, 0.8);
-            margin-top: 0.25rem;
-        }
-        
         .tool-selection-grid {
             display: grid;
             grid-template-columns: 1fr;
             gap: 0.5rem;
             margin: 1rem 0;
-        }
-        
-        .tool-checkbox {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 0.8rem;
-            border-radius: 8px;
-            border: 1px solid #e0e0e0;
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-        
-        .tool-checkbox:hover {
-            background: rgba(255, 255, 255, 1);
-            transform: translateX(2px);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-        
-        .tool-checkbox.selected {
-            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
-            border-color: #2196f3;
         }
         
         .model-selection-container {
@@ -426,100 +301,32 @@ def get_sidebar_styles() -> str:
             margin: 1rem 0;
             border: 1px solid #e0e0e0;
         }
-        
-        .maintenance-section {
-            background: linear-gradient(135deg, #ff7675 0%, #fd79a8 100%);
-            padding: 1rem;
-            border-radius: 10px;
-            margin: 1rem 0;
-            color: white;
-        }
-        
-        .maintenance-section h4 {
-            color: white;
-            margin-bottom: 0.8rem;
-        }
-        
-        .maintenance-warning {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 0.6rem;
-            border-radius: 6px;
-            margin: 0.5rem 0;
-            font-size: 0.85rem;
-            border-left: 3px solid rgba(255, 255, 255, 0.5);
-        }
     </style>
     """
 
 
 def get_responsive_styles() -> str:
     """
-    Get responsive CSS styles for mobile and tablet devices
+    Get responsive CSS styles for different screen sizes
     
     Returns:
         String containing responsive CSS styles
     """
     return """
     <style>
-        /* Mobile First Approach */
-        @media (max-width: 576px) {
+        /* Mobile Styles */
+        @media (max-width: 768px) {
             .main-header {
-                font-size: 1.8rem;
-                margin-bottom: 1rem;
+                font-size: 2rem;
             }
             
             .activity-card, .cost-card, .memory-card {
-                padding: 0.6rem;
-                margin-bottom: 0.8rem;
+                padding: 0.8rem;
             }
             
             .configuration-banner {
-                padding: 0.5rem;
-                font-size: 0.8rem;
-            }
-            
-            .chat-response-container {
-                padding: 1rem;
-                margin: 0.8rem 0;
-            }
-            
-            .sidebar-section {
-                margin-bottom: 1rem;
-                padding-bottom: 0.8rem;
-            }
-        }
-        
-        /* Tablet Styles */
-        @media (min-width: 577px) and (max-width: 768px) {
-            .main-header {
-                font-size: 2.2rem;
-            }
-            
-            .tool-selection-grid {
-                grid-template-columns: 1fr 1fr;
-                gap: 0.8rem;
-            }
-        }
-        
-        /* Desktop Styles */
-        @media (min-width: 769px) {
-            .tool-selection-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .chat-container {
-                max-height: 700px;
-            }
-        }
-        
-        /* Large Desktop Styles */
-        @media (min-width: 1200px) {
-            .main-header {
-                font-size: 3rem;
-            }
-            
-            .chat-container {
-                max-height: 800px;
+                padding: 0.6rem;
+                font-size: 0.9rem;
             }
         }
     </style>
