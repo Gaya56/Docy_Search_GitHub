@@ -1,16 +1,55 @@
 [project]
-name = "docy-search-github"
-version = "0.1.0"
-description = "Add your description here"
+name = "docy-search"
+version = "2.0.0"
+description = "Intelligent Tool Recommendation System with Advanced Memory"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.11"
 dependencies = [
-    "aiohttp>=3.12.11",
-    "aiosqlite>=0.21.0",
-    "anthropic>=0.52.2",
-    "google-generativeai>=0.8.5",
-    "openai>=1.84.0",
-    "pydantic-ai>=0.2.15",
-    "streamlit>=1.45.1",
-    "tiktoken>=0.9.0",
+    "pydantic-ai",
+    "pydantic-ai[openai]",
+    "pydantic-ai[anthropic]",
+    "pydantic-ai[google-generativeai]",
+    "mcp",
+    "python-dotenv",
+    "matplotlib",
+    "numpy",
+    "openai",
+    "requests",
+    "shcheck",
+    "webtech",
+    "google-generativeai",
+    "aiohttp",
+    "fastmcp",
+    "streamlit",
+    "plotly",
+    "aiosqlite",
+    "aiofiles",
+    "tiktoken",
+    "pydantic-settings>=2.0.0"
 ]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-asyncio",
+    "pytest-cov",
+    "black",
+    "isort",
+    "flake8",
+    "mypy"
+]
+
+[project.scripts]
+docy-cli = "docy_search.app:main"
+docy-web = "docy_search.main_ui:main"
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["docy_search*", "ui*", "memory*", "tool_recommendation*"]
+
+[tool.setuptools.package-data]
+"*" = ["*.md", "*.txt", "*.json"]
