@@ -181,7 +181,7 @@ INTERACTION STYLE:
 Your goal is to accelerate development productivity by connecting users with the perfect tools for their specific needs."""
 
     return Agent(
-        agent_model, 
+        model, 
         mcp_servers=[brave_server, python_tools_server, tool_recommendation_server, github_server],
         retries=3,
         system_prompt=system_prompt

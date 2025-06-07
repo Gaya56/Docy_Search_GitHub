@@ -514,7 +514,11 @@ def display_sidebar():
             }
         }
         
-        # Model selection radio buttons (AI model already initialized in initialize_session_state)
+        # Initialize AI model preference
+        if 'selected_ai_model' not in st.session_state:
+            st.session_state.selected_ai_model = "openai"  # Default
+        
+        # Model selection radio buttons
         selected_model = st.radio(
             "Choose AI Model:",
             options=list(ai_models.keys()),
