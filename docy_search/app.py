@@ -1,5 +1,6 @@
 import os
 import asyncio
+from contextlib import nullcontext
 from dotenv import load_dotenv # Add this import
 from pydantic_ai import Agent
 from pydantic_ai.mcp import MCPServerStdio
@@ -203,6 +204,7 @@ async def main():
     # Create agent with context
     agent = create_agent_with_context(project_context, user_id)
     
+    # Re-enable MCP servers with fixed paths
     async with agent.run_mcp_servers():
         print("🔧 Tool Recommendation Assistant Ready! Type 'exit' to quit.\n")
         
