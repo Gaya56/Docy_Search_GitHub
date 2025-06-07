@@ -31,20 +31,24 @@ def load_project_context():
         print(f"ℹ️ No project context file found. Create '{context_file}' to provide project details.")
         return ""
 
+def get_model_from_name(model_name):
+    """Create a model instance based on the model name"""
+    if model_name == "claude":
+        return AnthropicModel(model_name="claude-3-opus-20240229")
+    elif model_name == "gemini":
+        return GoogleModel(model_name="gemini-1.5-flash")
+    elif model_name == "deepseek":
+        return OpenAIModel(
+            model_name="deepseek-chat",
+            base_url="https://api.deepseek.com/v1"
+        )
+    else:  # Default to openai
+        return OpenAIModel(model_name="gpt-4o-mini")
+
 # Use model based on environment variable
 model_type = os.getenv("AI_MODEL", "openai").lower()
 
-if model_type == "claude":
-    model = AnthropicModel(model_name="claude-3-opus-20240229")
-elif model_type == "gemini":
-    model = GoogleModel(model_name="gemini-1.5-flash")
-elif model_type == "deepseek":
-    model = OpenAIModel(
-        model_name="deepseek-chat",
-        base_url="https://api.deepseek.com/v1"
-    )
-else:
-    model = OpenAIModel(model_name="gpt-4o-mini")
+model = get_model_from_name(model_type)
 
 # MEMORY INTEGRATION START
 # Initialize memory manager with the current model
@@ -83,7 +87,13 @@ tool_recommendation_server = MCPServerStdio(
 )
 
 # Define the Agent with all MCP servers
-def create_agent_with_context(project_context="", user_id=None):
+def create_agent_with_context(project_context="", user_id=None, model_name=None):
+    # Get the appropriate model
+    if model_name:
+        agent_model = get_model_from_name(model_name)
+    else:
+        agent_model = model  # Use the default global model
+    
     context_section = ""
     if project_context.strip():
         context_section = f"""
@@ -171,7 +181,7 @@ INTERACTION STYLE:
 Your goal is to accelerate development productivity by connecting users with the perfect tools for their specific needs."""
 
     return Agent(
-        model, 
+        agent_model, 
         mcp_servers=[brave_server, python_tools_server, tool_recommendation_server, github_server],
         retries=3,
         system_prompt=system_prompt

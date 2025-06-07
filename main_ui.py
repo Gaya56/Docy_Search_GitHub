@@ -24,6 +24,7 @@ from memory.cost_tracker import CostTracker
 from app import (
     load_project_context, 
     create_agent_with_context,
+    get_model_from_name,
     model,
     memory_manager
 )
@@ -161,6 +162,13 @@ def initialize_session_state():
     
     if 'cleared_count' not in st.session_state:
         st.session_state.cleared_count = 0
+    
+    # Initialize AI model selection
+    if 'selected_ai_model' not in st.session_state:
+        st.session_state.selected_ai_model = "openai"  # Default
+    
+    if 'previous_ai_model' not in st.session_state:
+        st.session_state.previous_ai_model = st.session_state.selected_ai_model
 
 # Load project context
 @st.cache_data
@@ -506,11 +514,7 @@ def display_sidebar():
             }
         }
         
-        # Initialize AI model preference
-        if 'selected_ai_model' not in st.session_state:
-            st.session_state.selected_ai_model = "openai"  # Default
-        
-        # Model selection radio buttons
+        # Model selection radio buttons (AI model already initialized in initialize_session_state)
         selected_model = st.radio(
             "Choose AI Model:",
             options=list(ai_models.keys()),
@@ -518,8 +522,15 @@ def display_sidebar():
             key="ai_model_selection"
         )
         
-        # Update session state
+        # Update session state and detect changes
+        previous_model = st.session_state.get('previous_ai_model', st.session_state.selected_ai_model)
         st.session_state.selected_ai_model = ai_models[selected_model]["key"]
+        
+        # Show model change notification
+        if previous_model != st.session_state.selected_ai_model:
+            st.session_state.previous_ai_model = st.session_state.selected_ai_model
+            st.success(f"🔄 AI model switched to {selected_model}")
+            st.info("💡 Agent cache cleared - next message will use the new model")
         
         # Display model info
         model_info = ai_models[selected_model]
@@ -560,15 +571,29 @@ def display_sidebar():
             st.code(f"Tools: {selected_count}/{total_count} | Model: {selected_model}", language="text")
 
 async def get_agent_response(prompt, conversation_context):
-    """Get response from the agent"""
+    """Get response from the agent with dynamic model switching"""
     try:
-        # Create agent once and cache in session state
-        if 'agent' not in st.session_state:
-            st.session_state.agent = create_agent_with_context(
+        # Get current model selection
+        current_model = st.session_state.get('selected_ai_model', 'openai')
+        
+        # Create cache key based on model and context
+        agent_cache_key = f"agent_{current_model}"
+        
+        # Create agent if not cached or model changed
+        if agent_cache_key not in st.session_state:
+            # Clear any old agent cache when model changes
+            for key in list(st.session_state.keys()):
+                if key.startswith('agent_'):
+                    del st.session_state[key]
+            
+            # Create new agent with selected model
+            st.session_state[agent_cache_key] = create_agent_with_context(
                 st.session_state.project_context, 
-                st.session_state.user_id
+                st.session_state.user_id,
+                model_name=current_model
             )
-        agent = st.session_state.agent
+        
+        agent = st.session_state[agent_cache_key]
         
         # Build full prompt with conversation context
         full_prompt = f"{conversation_context}\nCurrent message: {prompt}"
