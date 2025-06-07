@@ -5,8 +5,8 @@ from datetime import datetime
 from typing import Dict, Any, Optional
 
 # Import required modules
-from activity_tracker import activity_tracker
-from memory.cost_tracker import CostTracker
+from docy_search.activity_tracker import activity_tracker
+from docy_search.memory.cost_tracker import CostTracker
 
 
 class SidebarComponent:

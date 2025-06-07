@@ -9,7 +9,7 @@ from datetime import datetime
 from typing import Tuple, Optional
 
 # Import from app for memory_manager access
-from app import memory_manager
+from docy_search.app import memory_manager
 
 
 class MemoryComponent:

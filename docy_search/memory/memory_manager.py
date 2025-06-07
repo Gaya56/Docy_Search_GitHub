@@ -16,8 +16,8 @@ try:
     import sys
     parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     sys.path.insert(0, parent_dir) if parent_dir not in sys.path else None
-    from activity_tracker import activity_tracker
-    from memory.cost_tracker import CostTracker
+    from docy_search.activity_tracker import activity_tracker
+    from docy_search.memory.cost_tracker import CostTracker
     TRACKING_AVAILABLE = True
 except ImportError:
     activity_tracker, CostTracker, TRACKING_AVAILABLE = None, None, False

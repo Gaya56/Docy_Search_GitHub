@@ -10,7 +10,7 @@ from pydantic_ai.models.google import GoogleModel
 # MEMORY INTEGRATION START
 import uuid
 from datetime import datetime
-from memory.memory_manager import MemoryManager
+from docy_search.memory.memory_manager import MemoryManager
 # MEMORY INTEGRATION END
 
 load_dotenv() # Call this at the beginning of your script

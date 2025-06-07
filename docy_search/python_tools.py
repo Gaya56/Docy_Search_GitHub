@@ -8,7 +8,7 @@ import traceback
 
 # Import activity tracking with graceful fallback
 try:
-    from activity_tracker import activity_tracker
+    from docy_search.activity_tracker import activity_tracker
     TRACKING_AVAILABLE = True
 except ImportError:
     TRACKING_AVAILABLE = False

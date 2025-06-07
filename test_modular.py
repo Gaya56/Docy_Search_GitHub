@@ -14,20 +14,20 @@ def test_imports():
     
     try:
         # Test UI component imports
-        from ui.components.sidebar import SidebarComponent
+        from docy_search.ui.components.sidebar import SidebarComponent
         print("✅ SidebarComponent imported successfully")
         
-        from ui.components.chat import ChatComponent  
+        from docy_search.ui.components.chat import ChatComponent  
         print("✅ ChatComponent imported successfully")
         
-        from ui.components.memory import MemoryComponent
+        from docy_search.ui.components.memory import MemoryComponent
         print("✅ MemoryComponent imported successfully")
         
-        from ui.utils.styles import inject_all_styles
+        from docy_search.ui.utils.styles import inject_all_styles
         print("✅ Styles module imported successfully")
         
         # Test that styles functions work
-        from ui.utils.styles import get_main_styles, get_chat_styles, get_sidebar_styles, get_responsive_styles
+        from docy_search.ui.utils.styles import get_main_styles, get_chat_styles, get_sidebar_styles, get_responsive_styles
         print("✅ All style functions imported successfully")
         
         # Test styles generation
@@ -53,9 +53,9 @@ def test_component_instantiation():
     print("\nTesting component instantiation...")
     
     try:
-        from ui.components.sidebar import SidebarComponent
-        from ui.components.chat import ChatComponent
-        from ui.components.memory import MemoryComponent
+        from docy_search.ui.components.sidebar import SidebarComponent
+        from docy_search.ui.components.chat import ChatComponent
+        from docy_search.ui.components.memory import MemoryComponent
         
         # Test SidebarComponent
         sidebar = SidebarComponent()

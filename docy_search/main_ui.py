@@ -17,17 +17,17 @@ from dotenv import load_dotenv
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 # Import activity tracking and cost tracking
-from activity_tracker import activity_tracker
-from memory.cost_tracker import CostTracker
+from docy_search.activity_tracker import activity_tracker
+from docy_search.memory.cost_tracker import CostTracker
 
 # Import UI components
-from ui.components.sidebar import SidebarComponent
-from ui.components.chat import ChatComponent
-from ui.components.memory import MemoryComponent
-from ui.utils.styles import inject_all_styles
+from docy_search.ui.components.sidebar import SidebarComponent
+from docy_search.ui.components.chat import ChatComponent
+from docy_search.ui.components.memory import MemoryComponent
+from docy_search.ui.utils.styles import inject_all_styles
 
 # Import from existing app.py
-from app import (
+from docy_search.app import (
     load_project_context, 
     create_agent_with_context,
     get_model_from_name,

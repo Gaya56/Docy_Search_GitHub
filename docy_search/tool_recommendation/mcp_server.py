@@ -11,7 +11,7 @@ import re
 try:
     import sys
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    from activity_tracker import activity_tracker
+    from docy_search.activity_tracker import activity_tracker
     TRACKING_AVAILABLE = True
 except ImportError:
     TRACKING_AVAILABLE = False
