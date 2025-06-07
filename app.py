@@ -39,8 +39,8 @@ def get_model_from_name(model_name):
         return GoogleModel(model_name="gemini-1.5-flash")
     elif model_name == "deepseek":
         return OpenAIModel(
-            model_name="deepseek-chat",
-            base_url="https://api.deepseek.com/v1"
+            model_name="deepseek-chat"
+            # Note: Base URL configuration may need to be handled differently
         )
     else:  # Default to openai
         return OpenAIModel(model_name="gpt-4o-mini")
@@ -60,39 +60,31 @@ except Exception as e:
     print(f"⚠️ Memory system disabled: {e}")
 # MEMORY INTEGRATION END
 
-# Define the MCP Servers
-brave_server = MCPServerStdio(
-    'python',
-    ['brave_search.py']
-)
+# Tool Server Mapping - Maps tool keys to MCP server instances
+TOOL_SERVER_MAP = {
+    "web_search": lambda: MCPServerStdio('python', ['brave_search.py']),
+    "github_search": lambda: MCPServerStdio('python', ['github_mcp_server.py']),
+    "python_tools": lambda: MCPServerStdio('python', ['python_tools.py']),
+    "tool_recommend": lambda: MCPServerStdio('python', ['tool_recommendation/mcp_server.py']),
+    "data_viz": lambda: MCPServerStdio('python', ['python_tools.py'])  # Same as python_tools
+}
 
-python_tools_server = MCPServerStdio(
-    'python',
-    ['python_tools.py']
-)
-
-tool_recommendation_server = MCPServerStdio(
-    'python',
-    ['tool_recommendation/mcp_server.py']
-)
-
-github_server = MCPServerStdio(
-    'python',
-    ['github_mcp_server.py']
-)
-
-tool_recommendation_server = MCPServerStdio(
-    'python',
-    ['tool_recommendation/mcp_server.py']
-)
-
-# Define the Agent with all MCP servers
-def create_agent_with_context(project_context="", user_id=None, model_name=None):
+# Define the Agent with filtered MCP servers
+def create_agent_with_context(project_context="", user_id=None, model_name=None, selected_tools=None):
     # Get the appropriate model
     if model_name:
         agent_model = get_model_from_name(model_name)
     else:
         agent_model = model  # Use the default global model
+    
+    # Filter MCP servers based on selection
+    if selected_tools is None:
+        selected_tools = list(TOOL_SERVER_MAP.keys())  # All tools by default
+    
+    mcp_servers = []
+    for tool_key in selected_tools:
+        if tool_key in TOOL_SERVER_MAP:
+            mcp_servers.append(TOOL_SERVER_MAP[tool_key]())
     
     context_section = ""
     if project_context.strip():
@@ -181,8 +173,8 @@ INTERACTION STYLE:
 Your goal is to accelerate development productivity by connecting users with the perfect tools for their specific needs."""
 
     return Agent(
-        model, 
-        mcp_servers=[brave_server, python_tools_server, tool_recommendation_server, github_server],
+        agent_model,  # Use the selected model instead of global model
+        mcp_servers=mcp_servers,  # Use filtered servers
         retries=3,
         system_prompt=system_prompt
     )

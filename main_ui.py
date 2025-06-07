@@ -477,6 +477,17 @@ def display_sidebar():
                 else:
                     st.markdown("❌")
         
+        # Detect tool selection changes and clear agent cache
+        prev_tools = st.session_state.get('prev_selected_tools', {})
+        if prev_tools != st.session_state.selected_tools:
+            st.session_state.prev_selected_tools = st.session_state.selected_tools.copy()
+            # Clear all cached agents to force rebuild with new toolset
+            for key in list(st.session_state.keys()):
+                if isinstance(key, str) and key.startswith("agent_"):
+                    del st.session_state[key]
+            if prev_tools:  # Only show notification if not first time
+                st.success("🔄 Tool selection updated - agent cache cleared")
+        
         # Show selected tool count
         selected_count = sum(1 for selected in st.session_state.selected_tools.values() if selected)
         total_count = len(available_tools)
@@ -580,21 +591,24 @@ async def get_agent_response(prompt, conversation_context):
         # Get current model selection
         current_model = st.session_state.get('selected_ai_model', 'openai')
         
-        # Create cache key based on model and context
-        agent_cache_key = f"agent_{current_model}"
+        # Create cache key based on model and selected tools
+        selected_tools_list = [k for k, v in st.session_state.selected_tools.items() if v] if 'selected_tools' in st.session_state else []
+        tools_hash = hash(tuple(sorted(selected_tools_list)))
+        agent_cache_key = f"agent_{current_model}_{tools_hash}"
         
-        # Create agent if not cached or model changed
+        # Create agent if not cached or model/tools changed
         if agent_cache_key not in st.session_state:
-            # Clear any old agent cache when model changes
+            # Clear any old agent cache when model or tools change
             for key in list(st.session_state.keys()):
-                if key.startswith('agent_'):
+                if isinstance(key, str) and key.startswith('agent_'):
                     del st.session_state[key]
             
-            # Create new agent with selected model
+            # Create new agent with selected model and tools
             st.session_state[agent_cache_key] = create_agent_with_context(
                 st.session_state.project_context, 
                 st.session_state.user_id,
-                model_name=current_model
+                model_name=current_model,
+                selected_tools=selected_tools_list  # Pass only enabled tools
             )
         
         agent = st.session_state[agent_cache_key]
@@ -748,7 +762,7 @@ def main():
                         "tool_recommend": "🎯 AI Analysis",
                         "data_viz": "📊 Visualization"
                     }
-                    active_tool_display = " | ".join([tool_names.get(tool, tool) for tool in active_tools])
+                    active_tool_display = " | ".join([tool_names.get(tool, tool) or tool for tool in active_tools])
                     st.caption(f"**Available tools:** {active_tool_display}")
             
             with st.spinner("🤔 Thinking..."):
