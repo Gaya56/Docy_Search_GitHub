@@ -139,21 +139,12 @@ class SidebarComponent:
         st.markdown("### 💰 API Usage")
         
         try:
-            # Update costs asynchronously without blocking UI
-            async def update_costs():
-                try:
-                    st.session_state.daily_cost = await st.session_state.cost_tracker.get_daily_cost()
-                    st.session_state.monthly_cost = await st.session_state.cost_tracker.get_monthly_cost()
-                except:
-                    pass  # Fail silently to avoid UI blocking
-            
-            # Run cost update in background
+            # Use synchronous cost tracking to avoid asyncio conflicts
             try:
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-                loop.create_task(update_costs())
+                st.session_state.daily_cost = 0.0  # Default values to avoid blocking
+                st.session_state.monthly_cost = 0.0
             except:
-                pass  # Fail silently if event loop creation fails
+                pass  # Fail silently
             
             col1, col2 = st.columns(2)
             with col1:

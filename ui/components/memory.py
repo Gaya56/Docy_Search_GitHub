@@ -42,9 +42,9 @@ class MemoryComponent:
             if len(response) > 500:
                 memory_content += "..."
             
-            # Save memory asynchronously using asyncio.run for Streamlit compatibility
-            async def async_save():
-                return await memory_manager.async_manager.save_memory(
+            # Use synchronous memory saving to avoid asyncio conflicts in Streamlit
+            try:
+                memory_id = memory_manager.save_memory(
                     user_id=st.session_state.user_id,
                     content=memory_content,
                     metadata={
@@ -56,35 +56,7 @@ class MemoryComponent:
                     },
                     category="tool_recommendation"
                 )
-            
-            # Run async operation in a way that's compatible with Streamlit
-            import asyncio
-            
-            # Save memory in background without blocking UI
-            try:
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-                memory_task = loop.create_task(async_save())
-                memory_id = None  # Don't wait for result to avoid blocking
-            except:
-                # Fallback to synchronous save if async fails
-                try:
-                    memory_id = asyncio.run(async_save())
-                except:
-                    # Final fallback to synchronous memory manager
-                    memory_id = memory_manager.save_memory(
-                        user_id=st.session_state.user_id,
-                        content=memory_content,
-                        metadata={
-                            "timestamp": datetime.now().isoformat(),
-                            "user_input_length": len(prompt),
-                            "response_length": len(response),
-                            "category": "tool_recommendation",
-                            "ui": "streamlit"
-                        },
-                        category="tool_recommendation"
-                    )
-                    
+            except Exception as fallback_error:
                 memory_id = None
             
             return True, memory_id
