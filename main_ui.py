@@ -475,11 +475,13 @@ def display_sidebar():
 async def get_agent_response(prompt, conversation_context):
     """Get response from the agent"""
     try:
-        # Create agent with context and user ID
-        agent = create_agent_with_context(
-            st.session_state.project_context, 
-            st.session_state.user_id
-        )
+        # Create agent once and cache in session state
+        if 'agent' not in st.session_state:
+            st.session_state.agent = create_agent_with_context(
+                st.session_state.project_context, 
+                st.session_state.user_id
+            )
+        agent = st.session_state.agent
         
         # Build full prompt with conversation context
         full_prompt = f"{conversation_context}\nCurrent message: {prompt}"
