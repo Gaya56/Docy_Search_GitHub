@@ -69,7 +69,7 @@ class SQLAgent:
         )
     
     async def query(self, message: str, user_id: Optional[str] = None) -> str:
-        """Execute natural language query and return summary with retry logic"""
+        """Execute natural language query with retry logic"""
         activity_id = None
 
         async def execute_query():
@@ -123,12 +123,14 @@ class SQLAgent:
 
 
 # Convenience function for direct usage
-async def run_sql_query(message: str, model=None, user_id: Optional[str] = None) -> str:
+async def run_sql_query(
+    message: str, model=None, user_id: Optional[str] = None
+) -> str:
     """Run a SQL query with the default or specified model"""
     from docy_search.app import get_model_from_name, memory_manager
-    
+
     if model is None:
         model = get_model_from_name(os.getenv("AI_MODEL", "openai"))
-    
+
     agent = SQLAgent(model, memory_manager)
     return await agent.query(message, user_id)
