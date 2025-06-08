@@ -6,6 +6,7 @@ from docy_search.database import run_sql_query
 from docy_search.dashboard.generator import DashboardGenerator
 from docy_search.app import model
 
+
 class DashboardComponent:
     """Dashboard generation and display"""
     

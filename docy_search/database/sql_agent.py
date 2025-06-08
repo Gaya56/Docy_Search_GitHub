@@ -5,12 +5,10 @@ import os
 from typing import Optional
 from datetime import datetime
 from pydantic_ai import Agent
-from pydantic_ai.tools.mcp import MCPTools
-from mcp import ClientSession
+from pydantic_ai.mcp import MCPServerStdio
 
 from docy_search.activity_tracker import activity_tracker
 from docy_search.memory.memory_manager import MemoryManager
-from .connection_manager import MCPSQLConnection
 
 
 async def retry_on_failure(func, max_retries=2, delay=1):
@@ -56,15 +54,24 @@ class SQLAgent:
         self.model = model
         self.memory_manager = memory_manager
         
-    async def create_agent(self, session: ClientSession) -> Agent:
-        """Create pydantic-ai agent with MCP tools"""
-        mcp_tools = MCPTools(session=session)
-        await mcp_tools.initialize()
+    async def create_agent(self) -> Agent:
+        """Create pydantic-ai agent with MCP SQL server"""
+        # Create MCP SQL server
+        mcp_sql_server = MCPServerStdio(
+            command="uvx",
+            args=[
+                "mcp-sql-server",
+                "--db-host", os.getenv("DB_HOST"),
+                "--db-user", os.getenv("DB_USER"),
+                "--db-password", os.getenv("DB_PASSWORD"),
+                "--db-database", os.getenv("DB_NAME"),
+                "--timeout", "30"
+            ],
+        )
         
         return Agent(
             self.model,
-            mcp_servers=[],  # Tools already initialized via MCPTools
-            tools=[mcp_tools],
+            mcp_servers=[mcp_sql_server],
             system_prompt=SQL_AGENT_PROMPT
         )
     
@@ -80,37 +87,34 @@ class SQLAgent:
                 {"query": message[:100], "user_id": user_id}
             )
 
-            # Create MCP session
-            async with await MCPSQLConnection.create_session() as (read, write):
-                async with ClientSession(read, write) as session:
-                    # Create and run agent
-                    agent = await self.create_agent(session)
-                    await activity_tracker.update_activity(
-                        activity_id, 0.5, {"status": "Executing query"}
-                    )
+            # Create and run agent
+            agent = await self.create_agent()
+            await activity_tracker.update_activity(
+                activity_id, 0.5, {"status": "Executing query"}
+            )
 
-                    result = await agent.run(message)
-                    response = result.output
+            result = await agent.run(message)
+            response = result.output
 
-                    # Save to memory if available
-                    if self.memory_manager and user_id and len(response) > 100:
-                        memory_content = (f"SQL Query: {message[:200]}\n"
-                                        f"Result: {response[:500]}")
-                        await self.memory_manager.async_manager.save_memory(
-                            user_id=user_id,
-                            content=memory_content,
-                            category="database_query",
-                            metadata={
-                                "query_type": "natural_language_sql",
-                                "timestamp": datetime.now().isoformat()
-                            }
-                        )
+            # Save to memory if available
+            if self.memory_manager and user_id and len(response) > 100:
+                memory_content = (f"SQL Query: {message[:200]}\n"
+                                  f"Result: {response[:500]}")
+                await self.memory_manager.async_manager.save_memory(
+                    user_id=user_id,
+                    content=memory_content,
+                    category="database_query",
+                    metadata={
+                        "query_type": "natural_language_sql",
+                        "timestamp": datetime.now().isoformat()
+                    }
+                )
 
-                    await activity_tracker.complete_activity(
-                        activity_id, f"Query completed: {len(response)} chars"
-                    )
+            await activity_tracker.complete_activity(
+                activity_id, f"Query completed: {len(response)} chars"
+            )
 
-                    return response
+            return response
 
         try:
             return await retry_on_failure(execute_query)
