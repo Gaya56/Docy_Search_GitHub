@@ -3,13 +3,14 @@
 import asyncio
 from typing import Optional, Dict, Any
 from datetime import datetime
-from pydantic_ai import Agent
-from pydantic_ai.tools.mcp import MCPTools
-from mcp import ClientSession
+
+# Simplified imports for quick fix
+# from pydantic_ai import Agent
+# from pydantic_ai.mcp import MCPServerStdio
 
 from docy_search.activity_tracker import activity_tracker
 from docy_search.memory.memory_manager import MemoryManager
-from .connection_manager import MCPSQLConnection
+# from .connection_manager import MCPSQLConnection
 
 
 SQL_AGENT_PROMPT = """You are an intelligent SQL assistant with database access through MCP tools.
