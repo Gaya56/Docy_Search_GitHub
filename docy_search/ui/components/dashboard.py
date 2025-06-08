@@ -57,57 +57,43 @@ class DashboardComponent:
 
     def _generate_dashboard(self):
         """Generate dashboard from database"""
-        async def generate_async():
+        async def async_generate():
             try:
-                # Get the selected AI model
-                model = get_model_from_name(
-                    st.session_state.get('selected_ai_model', 'openai')
-                )
+                model = get_model_from_name(st.session_state.selected_ai_model)
                 generator = DashboardGenerator(model)
-
-                # Generate dashboard HTML
+                
                 html_content = await generator.generate_full_dashboard(
-                    st.session_state.get('user_id')
+                    st.session_state.user_id
                 )
-
-                # Store results
-                st.session_state.dashboard_state.update({
-                    "generated": True,
-                    "html_content": html_content,
+                
+                return {
+                    "success": True,
+                    "html": html_content,
                     "metadata": {
                         "generated_at": datetime.now().isoformat(),
-                        "model": st.session_state.get(
-                            'selected_ai_model', 'openai'
-                        )
+                        "model": st.session_state.selected_ai_model
                     }
-                })
-
-                return True
-
+                }
             except Exception as e:
+                return {
+                    "success": False,
+                    "error": str(e)
+                }
+        
+        with st.spinner("🔍 Analyzing database schema..."):
+            # Run async function
+            result = asyncio.run(async_generate())
+            
+            if result["success"]:
                 st.session_state.dashboard_state.update({
                     "generated": True,
-                    "html_content": None,
-                    "metadata": {
-                        "generated_at": datetime.now().isoformat(),
-                        "error": str(e)
-                    }
+                    "html_content": result["html"],
+                    "metadata": result["metadata"]
                 })
-                return False
-
-        with st.spinner(
-            "🔍 Analyzing database schema and generating dashboard..."
-        ):
-            success = asyncio.run(generate_async())
-
-            if success:
                 st.success("✅ Dashboard generated successfully!")
+                st.rerun()
             else:
-                error = (
-                    st.session_state.dashboard_state["metadata"]
-                    .get("error", "Unknown error")
-                )
-                st.error(f"❌ Dashboard generation failed: {error}")
+                st.error(f"❌ Dashboard generation failed: {result['error']}")
 
     def _display_dashboard(self):
         """Display generated dashboard"""
