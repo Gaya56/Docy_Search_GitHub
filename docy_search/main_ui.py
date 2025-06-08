@@ -170,8 +170,12 @@ def main():
     # Configuration status banner
     display_configuration_banner()
     
-    # Chat interface with memory component
-    memory_component = MemoryComponent()
+    # Create tab-based interface
+    tab1, tab2 = st.tabs(["💬 AI Assistant", "📊 Dashboard"])
+    
+    with tab1:
+        # Chat interface with memory component
+        memory_component = MemoryComponent()
     
     def get_cached_agent():
         """Get or create cached agent"""
@@ -195,12 +199,15 @@ def main():
         return st.session_state[agent_key]
     
     chat = ChatComponent(get_cached_agent)
-    result = chat.render()
+    result = chat.render()        if result:
+            prompt, response = result
+            memory_saved, memory_id = memory_component.save_memory(prompt, response)
+            chat.add_assistant_message(response, memory_saved, memory_id)
     
-    if result:
-        prompt, response = result
-        memory_saved, memory_id = memory_component.save_memory(prompt, response)
-        chat.add_assistant_message(response, memory_saved, memory_id)
+    with tab2:
+        # Dashboard interface
+        dashboard_component = DashboardComponent()
+        dashboard_component.render()
     
     # Footer
     display_footer()
