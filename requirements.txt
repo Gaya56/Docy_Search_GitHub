@@ -20,3 +20,5 @@ plotly
 aiosqlite
 aiofiles
 tiktoken
+agno>=1.2.6
+mcp-sql-server
