@@ -1,6 +1,8 @@
 import streamlit as st
 import asyncio
 import random
+import os
+import time
 from datetime import datetime
 from typing import Dict, Any, Optional
 
@@ -36,6 +38,11 @@ class SidebarComponent:
             st.session_state.selected_ai_model = "openai"
         if 'previous_ai_model' not in st.session_state:
             st.session_state.previous_ai_model = st.session_state.selected_ai_model
+    
+    def _check_database_config(self) -> bool:
+        """Check if database is configured"""
+        required = ["DB_HOST", "DB_USER", "DB_PASSWORD", "DB_NAME"]
+        return all(os.getenv(var) for var in required)
     
     def render(self) -> Dict[str, Any]:
         """Render sidebar and return configuration changes"""
@@ -300,7 +307,7 @@ class SidebarComponent:
             },
             "🐙 GitHub Integration": {
                 "description": "Search GitHub repositories and access code examples",
-                "key": "github_search", 
+                "key": "github_search",
                 "enabled": True
             },
             "🐍 Python Tools": {
@@ -317,6 +324,11 @@ class SidebarComponent:
                 "description": "Create charts and visualizations from data",
                 "key": "data_viz",
                 "enabled": True
+            },
+            "🗄️ SQL Database": {
+                "description": "Query databases using natural language",
+                "key": "sql_database",
+                "enabled": False  # Default off, requires DB config
             }
         }
         
@@ -342,6 +354,12 @@ class SidebarComponent:
                     st.markdown("✅")
                 else:
                     st.markdown("❌")
+            
+            # After SQL Database checkbox
+            if tool_info["key"] == "sql_database":
+                if not self._check_database_config():
+                    st.warning("⚠️ Database not configured. Add DB credentials to .env")
+                    st.session_state.selected_tools["sql_database"] = False
         
         # Detect tool selection changes and clear agent cache
         prev_tools = st.session_state.get('prev_selected_tools', {})
@@ -360,6 +378,20 @@ class SidebarComponent:
         selected_count = sum(1 for selected in st.session_state.selected_tools.values() if selected)
         total_count = len(available_tools)
         st.caption(f"**{selected_count}/{total_count} tools selected**")
+        
+        # Database Quick Test UI
+        if st.session_state.selected_tools.get("sql_database", False):
+            with st.expander("🗄️ Database Quick Test"):
+                if st.button("Test Connection", key="test_db"):
+                    with st.spinner("Testing database connection..."):
+                        try:
+                            from docy_search.database.sql_agent import run_sql_query
+                            result = asyncio.run(run_sql_query("Show me the database schema"))
+                            st.success("✅ Database connected!")
+                            display_result = result[:200] + "..." if len(result) > 200 else result
+                            st.text(display_result)
+                        except Exception as e:
+                            st.error(f"❌ Connection failed: {str(e)}")
         
         return tools_changed
     
@@ -438,7 +470,7 @@ class SidebarComponent:
         with col2:
             if st.button("⚡ Essential Only", use_container_width=True):
                 # Enable only essential tools
-                essential_tools = ["web_search", "tool_recommend"]
+                essential_tools = ["web_search", "tool_recommend", "sql_database"]
                 for key in st.session_state.selected_tools:
                     st.session_state.selected_tools[key] = key in essential_tools
                 st.rerun()
