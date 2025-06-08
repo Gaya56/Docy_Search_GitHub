@@ -1,13 +1,25 @@
-# docy_search/dashboard/generator.py
 """Dashboard generation orchestration"""
+import asyncio
 import json
-from typing import Dict, Any, Optional
-from datetime import datetime
+from typing import Any, Dict, Optional
 
 from docy_search.activity_tracker import activity_tracker
-from docy_search.database import SQLAgent, run_sql_query
-
+from docy_search.database import SQLAgent
 from .validators import validate_schema_analysis
+
+
+async def retry_on_failure(func, max_retries=3, delay=2):
+    """Retry async function on failure with exponential backoff"""
+    for attempt in range(max_retries):
+        try:
+            return await func()
+        except Exception as e:
+            if attempt == max_retries - 1:
+                print(f"Failed after {max_retries} attempts: {e}")
+                raise
+            wait_time = delay * (attempt + 1)
+            print(f"Attempt {attempt + 1} failed, retrying in {wait_time}s: {e}")
+            await asyncio.sleep(wait_time)
 
 
 class DashboardGenerator:
@@ -17,7 +29,9 @@ class DashboardGenerator:
         self.model = model
         self.sql_agent = SQLAgent(model)
 
-    async def generate_full_dashboard(self, user_id: Optional[str] = None) -> str:
+    async def generate_full_dashboard(
+        self, user_id: Optional[str] = None
+    ) -> str:
         """Generate complete HTML dashboard"""
         activity_id = await activity_tracker.start_activity(
             "dashboard_generation",
@@ -55,38 +69,40 @@ class DashboardGenerator:
             raise
 
     async def _analyze_database_schema(self) -> Dict[str, Any]:
-        """Analyze database and identify metrics"""
-        # Mock schema analysis - will be replaced with actual implementation
-        mock_schema = {
-            "database_summary": "Mock database analysis",
-            "key_metrics": [
-                {
-                    "metric": "Total Records",
-                    "description": "Count of all records",
-                    "sql": ("SELECT COUNT(*) as total "
-                           "FROM information_schema.tables"),
-                    "type": "count"
-                },
-                {
-                    "metric": "Database Tables",
-                    "description": "Number of tables in database",
-                    "sql": ("SELECT COUNT(*) as table_count "
-                           "FROM information_schema.tables "
-                           "WHERE table_schema = DATABASE()"),
-                    "type": "count"
-                }
-            ]
-        }
+        """Analyze database with retry logic"""
+        async def analyze():
+            # Mock schema analysis - can be replaced with actual AI analysis
+            mock_schema = {
+                "database_summary": "Mock database analysis",
+                "key_metrics": [
+                    {
+                        "metric": "Total Records",
+                        "description": "Count of all records",
+                        "sql": ("SELECT COUNT(*) as total "
+                               "FROM information_schema.tables"),
+                        "type": "count"
+                    },
+                    {
+                        "metric": "Database Tables",
+                        "description": "Number of tables in database",
+                        "sql": ("SELECT COUNT(*) as table_count "
+                               "FROM information_schema.tables "
+                               "WHERE table_schema = DATABASE()"),
+                        "type": "count"
+                    }
+                ]
+            }
+            return validate_schema_analysis(mock_schema)
 
-        # Return mock schema directly since it's already a valid dict
-        return mock_schema
+        return await retry_on_failure(analyze)
 
-    async def _fetch_metrics_data(self, schema_analysis: Dict[str, Any]) -> Dict[str, Any]:
-        """Execute SQL queries for each metric"""
-        metrics_with_data = {"metrics": []}
-
-        for metric in schema_analysis["key_metrics"]:
-            try:
+    async def _fetch_metrics_data(
+        self, schema_analysis: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Execute SQL queries for each metric with retry logic"""
+        async def fetch_single_metric(metric):
+            """Fetch data for a single metric with retry"""
+            async def fetch():
                 data = await self.sql_agent.query(
                     f"Execute this SQL: {metric['sql']}"
                 )
@@ -95,13 +111,26 @@ class DashboardGenerator:
                     parsed_data = json.loads(data)
                 except Exception:
                     parsed_data = [{"result": data}]
+                return parsed_data
 
+            return await retry_on_failure(fetch)
+
+        metrics_with_data: Dict[str, Any] = {"metrics": []}
+
+        for metric in schema_analysis["key_metrics"]:
+            try:
+                data = await fetch_single_metric(metric)
                 metrics_with_data["metrics"].append({
                     **metric,
-                    "data": parsed_data
+                    "data": data
                 })
             except Exception as e:
                 print(f"Failed to fetch {metric['metric']}: {e}")
+                # Add metric with error indication
+                metrics_with_data["metrics"].append({
+                    **metric,
+                    "data": [{"result": "Error fetching data"}]
+                })
 
         return metrics_with_data
 

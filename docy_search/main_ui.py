@@ -24,8 +24,6 @@ from docy_search.memory.cost_tracker import CostTracker
 from docy_search.ui.components.sidebar import SidebarComponent
 from docy_search.ui.components.chat import ChatComponent
 from docy_search.ui.components.memory import MemoryComponent
-from docy_search.ui.components.tabs import TabComponent
-from docy_search.ui.components.dashboard import DashboardComponent
 from docy_search.ui.utils.styles import inject_all_styles
 
 # Import from existing app.py
@@ -171,10 +169,8 @@ def main():
     # Configuration status banner
     display_configuration_banner()
     
-    # Tab interface with memory component
+    # Chat interface with memory component
     memory_component = MemoryComponent()
-    tab_component = TabComponent()
-    dashboard_component = DashboardComponent()
     
     def get_cached_agent():
         """Get or create cached agent"""
@@ -197,36 +193,13 @@ def main():
             )
         return st.session_state[agent_key]
     
-    def render_chat_tab():
-        """Render chat tab with memory integration"""
-        chat_component = ChatComponent(get_cached_agent)
-        result = chat_component.render()
-        
-        if result:
-            prompt, response = result
-            memory_saved, memory_id = memory_component.save_memory(prompt, response)
-            chat_component.add_assistant_message(response, memory_saved, memory_id)
+    chat = ChatComponent(get_cached_agent)
+    result = chat.render()
     
-    # Define tabs
-    tabs = {
-        "chat": {
-            "label": "Chat",
-            "icon": "💬",
-            "render": render_chat_tab
-        },
-        "dashboard": {
-            "label": "Dashboard",
-            "icon": "📊", 
-            "render": dashboard_component.render
-        }
-    }
-    
-    # Only show dashboard tab if SQL tool is selected
-    if not st.session_state.get('selected_tools', {}).get('sql_database', False):
-        tabs.pop("dashboard", None)
-    
-    # Render tabs
-    tab_component.render(tabs)
+    if result:
+        prompt, response = result
+        memory_saved, memory_id = memory_component.save_memory(prompt, response)
+        chat.add_assistant_message(response, memory_saved, memory_id)
     
     # Footer
     display_footer()
