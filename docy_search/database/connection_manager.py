@@ -11,10 +11,10 @@ load_dotenv()
 
 class MCPSQLConnection:
     """Manages MCP SQL server connections"""
-    
+
     @staticmethod
     def get_server_params() -> StdioServerParameters:
-        """Get MCP SQL server parameters from environment"""
+        """Get MCP SQL server parameters from environment with timeout"""
         required_vars = ["DB_HOST", "DB_USER", "DB_PASSWORD", "DB_NAME"]
         missing = [var for var in required_vars if not os.getenv(var)]
         if missing:
@@ -28,6 +28,7 @@ class MCPSQLConnection:
                 "--db-user", os.getenv("DB_USER"),
                 "--db-password", os.getenv("DB_PASSWORD"),
                 "--db-database", os.getenv("DB_NAME"),
+                "--timeout", "30"  # Add 30 second timeout
             ],
         )
     

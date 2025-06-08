@@ -1,7 +1,8 @@
 # docy_search/database/sql_agent.py
 """Natural language SQL query agent"""
 import asyncio
-from typing import Optional, Dict, Any
+import os
+from typing import Optional
 from datetime import datetime
 from pydantic_ai import Agent
 from pydantic_ai.tools.mcp import MCPTools
@@ -10,6 +11,20 @@ from mcp import ClientSession
 from docy_search.activity_tracker import activity_tracker
 from docy_search.memory.memory_manager import MemoryManager
 from .connection_manager import MCPSQLConnection
+
+
+async def retry_on_failure(func, max_retries=2, delay=1):
+    """Retry async function on failure"""
+    for attempt in range(max_retries):
+        try:
+            return await func()
+        except Exception as e:
+            if attempt == max_retries - 1:
+                print(f"SQL operation failed after {max_retries} attempts: {e}")
+                raise
+            wait_time = delay * (attempt + 1)
+            print(f"SQL attempt {attempt + 1} failed, retrying in {wait_time}s: {e}")
+            await asyncio.sleep(wait_time)
 
 
 SQL_AGENT_PROMPT = """You are an intelligent SQL assistant with database access through MCP tools.
@@ -54,16 +69,17 @@ class SQLAgent:
         )
     
     async def query(self, message: str, user_id: Optional[str] = None) -> str:
-        """Execute natural language query and return summary"""
+        """Execute natural language query with retry logic"""
         activity_id = None
-        
-        try:
+
+        async def execute_query():
+            nonlocal activity_id
             # Start activity tracking
             activity_id = await activity_tracker.start_activity(
                 "sql_query",
                 {"query": message[:100], "user_id": user_id}
             )
-            
+
             # Create MCP session
             async with await MCPSQLConnection.create_session() as (read, write):
                 async with ClientSession(read, write) as session:
@@ -72,13 +88,14 @@ class SQLAgent:
                     await activity_tracker.update_activity(
                         activity_id, 0.5, {"status": "Executing query"}
                     )
-                    
+
                     result = await agent.run(message)
                     response = result.output
-                    
+
                     # Save to memory if available
                     if self.memory_manager and user_id and len(response) > 100:
-                        memory_content = f"SQL Query: {message[:200]}\nResult: {response[:500]}"
+                        memory_content = (f"SQL Query: {message[:200]}\n"
+                                        f"Result: {response[:500]}")
                         await self.memory_manager.async_manager.save_memory(
                             user_id=user_id,
                             content=memory_content,
@@ -88,13 +105,15 @@ class SQLAgent:
                                 "timestamp": datetime.now().isoformat()
                             }
                         )
-                    
+
                     await activity_tracker.complete_activity(
                         activity_id, f"Query completed: {len(response)} chars"
                     )
-                    
+
                     return response
-                    
+
+        try:
+            return await retry_on_failure(execute_query)
         except Exception as e:
             if activity_id:
                 await activity_tracker.complete_activity(
@@ -104,12 +123,14 @@ class SQLAgent:
 
 
 # Convenience function for direct usage
-async def run_sql_query(message: str, model=None, user_id: Optional[str] = None) -> str:
+async def run_sql_query(
+    message: str, model=None, user_id: Optional[str] = None
+) -> str:
     """Run a SQL query with the default or specified model"""
     from docy_search.app import get_model_from_name, memory_manager
-    
+
     if model is None:
         model = get_model_from_name(os.getenv("AI_MODEL", "openai"))
-    
+
     agent = SQLAgent(model, memory_manager)
     return await agent.query(message, user_id)

@@ -113,7 +113,7 @@ class DashboardGenerator:
                     parsed_data = [{"result": data}]
                 return parsed_data
 
-            return await retry_on_failure(fetch)
+            return await retry_on_failure(fetch, max_retries=2)
 
         metrics_with_data: Dict[str, Any] = {"metrics": []}
 
@@ -136,44 +136,45 @@ class DashboardGenerator:
 
     async def _generate_html(self, metrics_data: Dict[str, Any]) -> str:
         """Generate HTML dashboard from metrics"""
-        # Simple HTML template - will be replaced with AI generation
-        metrics_html = ""
-        for metric in metrics_data.get("metrics", []):
-            metric_name = metric.get("metric", "Unknown")
-            metric_value = (
-                metric.get("data", [{}])[0].get("result", "N/A")
-            )
-            metrics_html += f'''
+        async def generate():
+            # Simple HTML template - can be replaced with AI generation
+            metrics_html = ""
+            for metric in metrics_data.get("metrics", []):
+                metric_name = metric.get("metric", "Unknown")
+                metric_value = (
+                    metric.get("data", [{}])[0].get("result", "N/A")
+                )
+                metrics_html += f'''
             <div class="metric">
                 <div class="metric-title">{metric_name}</div>
                 <div class="metric-value">{metric_value}</div>
             </div>'''
 
-        html_template = f"""<!DOCTYPE html>
+            html_template = f"""<!DOCTYPE html>
 <html>
 <head>
     <title>Dashboard</title>
     <style>
-        body {{ 
-            font-family: Arial, sans-serif; 
-            margin: 20px; 
+        body {{
+            font-family: Arial, sans-serif;
+            margin: 20px;
             background: #f5f5f5;
         }}
-        .metric {{ 
-            background: white; 
-            padding: 20px; 
-            margin: 15px 0; 
+        .metric {{
+            background: white;
+            padding: 20px;
+            margin: 15px 0;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }}
-        .metric-title {{ 
-            font-weight: bold; 
-            color: #333; 
+        .metric-title {{
+            font-weight: bold;
+            color: #333;
             margin-bottom: 10px;
         }}
-        .metric-value {{ 
-            font-size: 28px; 
-            color: #007acc; 
+        .metric-value {{
+            font-size: 28px;
+            color: #007acc;
             font-weight: bold;
         }}
         h1 {{
@@ -189,5 +190,8 @@ class DashboardGenerator:
     </div>
 </body>
 </html>"""
+            return html_template.strip()
+
+        return await retry_on_failure(generate)
 
         return html_template
