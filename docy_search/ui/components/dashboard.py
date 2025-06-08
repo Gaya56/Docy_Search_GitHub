@@ -1,7 +1,10 @@
 import streamlit as st
+import streamlit.components.v1 as components
 import asyncio
 from datetime import datetime
 from docy_search.database import run_sql_query
+from docy_search.dashboard.generator import DashboardGenerator
+from docy_search.app import model
 
 class DashboardComponent:
     """Dashboard generation and display"""
@@ -42,40 +45,66 @@ class DashboardComponent:
         return all(os.getenv(var) for var in required)
     
     def _generate_dashboard(self):
-        """Placeholder for dashboard generation"""
+        """Generate dashboard using DashboardGenerator"""
+        async def generate():
+            dashboard_generator = DashboardGenerator(model)
+            return await dashboard_generator.generate_full_dashboard()
+        
         with st.spinner("🔍 Analyzing database schema..."):
-            # Placeholder - will implement full generation later
-            st.session_state.dashboard_state["generated"] = True
-            st.session_state.dashboard_state["metadata"] = {
-                "generated_at": datetime.now().isoformat(),
-                "status": "placeholder"
-            }
-            st.success("✅ Dashboard generation ready for implementation!")
+            try:
+                # Run async dashboard generation
+                html_content = asyncio.run(generate())
+                
+                # Update session state
+                st.session_state.dashboard_state["generated"] = True
+                st.session_state.dashboard_state["html_content"] = html_content
+                st.session_state.dashboard_state["metadata"] = {
+                    "generated_at": datetime.now().isoformat(),
+                    "model": model.__class__.__name__,
+                    "status": "success"
+                }
+                st.success("✅ Dashboard generated successfully!")
+                st.rerun()
+                
+            except Exception as e:
+                st.error(f"❌ Dashboard generation failed: {str(e)}")
+                st.session_state.dashboard_state["generated"] = False
     
     def _display_dashboard(self):
-        """Display generated dashboard"""
+        """Display generated dashboard with preview and export"""
         st.divider()
-        
+
+        # Metadata section
+        with st.expander("📋 Dashboard Details", expanded=False):
+            metadata = st.session_state.dashboard_state.get("metadata", {})
+            col1, col2 = st.columns(2)
+            with col1:
+                generated_at = metadata.get("generated_at", "N/A")[:19]
+                st.metric("Generated", generated_at)
+            with col2:
+                st.metric("Model", metadata.get("model", "Unknown"))
+
         # Preview section
         st.markdown("### 👁️ Dashboard Preview")
-        
-        if st.session_state.dashboard_state.get("html_content"):
-            # Will display actual HTML later
-            st.components.v1.html(
-                st.session_state.dashboard_state["html_content"], 
-                height=600
-            )
+
+        html_content = st.session_state.dashboard_state.get("html_content")
+        if html_content:
+            # Display in iframe
+            st.components.v1.html(html_content, height=800, scrolling=True)
+
+            # Export section
+            st.divider()
+            col1, col2, col3 = st.columns([1, 2, 1])
+            with col2:
+                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                st.download_button(
+                    label="📥 Download Dashboard HTML",
+                    data=html_content,
+                    file_name=f"dashboard_{timestamp}.html",
+                    mime="text/html",
+                    use_container_width=True,
+                    type="primary"
+                )
+                st.caption(f"File size: {len(html_content):,} bytes")
         else:
-            # Placeholder
-            st.info("Dashboard HTML will appear here once generation is implemented.")
-        
-        # Download section
-        col1, col2, col3 = st.columns([2, 1, 1])
-        with col2:
-            st.download_button(
-                "📥 Download HTML",
-                data=st.session_state.dashboard_state.get("html_content", ""),
-                file_name=f"dashboard_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html",
-                mime="text/html",
-                disabled=not st.session_state.dashboard_state.get("html_content")
-            )
+            st.error("No dashboard content available")

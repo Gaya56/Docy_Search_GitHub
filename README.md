@@ -30,6 +30,15 @@ Enterprise-grade memory capabilities with async operations, database migrations,
 - ✅ **Tool Selection Dashboard** - Choose which tools to enable for conversations
 - ✅ **AI Model Selection** - Switch between OpenAI, Claude, Gemini, and DeepSeek models
 
+### 📊 **AI-Powered Dashboard Generator (NEW)**
+- ✅ **Database Schema Analysis** - Automatic database structure discovery
+- ✅ **Intelligent Metrics Generation** - AI-driven KPI and metric identification
+- ✅ **Interactive HTML Dashboards** - Beautiful, responsive dashboard creation
+- ✅ **Retry Logic & Error Recovery** - Robust handling of network and API failures
+- ✅ **Export Functionality** - Download dashboards as standalone HTML files
+- ✅ **Real-time Progress Tracking** - Visual feedback during generation process
+- ✅ **Multi-User Support** - User-specific dashboard generation and storage
+
 ## 🏗️ **Architecture Overview**
 
 ```
@@ -42,11 +51,25 @@ Docy_Search_GitHub/
 │   │   ├── sqlite_memory.py     # Async + Sync SQLite operations
 │   │   ├── memory_manager.py    # Async memory with OpenAI embeddings
 │   │   └── README.md           # Memory system documentation
+├── 📊 Dashboard System (NEW)
+│   ├── dashboard/
+│   │   ├── generator.py         # AI-powered dashboard orchestration
+│   │   ├── validators.py        # Data validation and schema checking
+│   │   └── prompts.py          # AI prompts for dashboard generation
+│   └── database/
+│       ├── sql_agent.py        # Natural language SQL queries
+│       └── connection_manager.py # Database connection with timeout handling
 ├── 🔧 Tool Recommendation
 │   ├── tool_recommendation/     # MCP server for tool analysis
 │   ├── brave_search.py         # Live web search integration
 │   ├── github_mcp_server.py    # GitHub repository access
 │   └── python_tools.py         # Python-specific tooling
+├── 🖥️ User Interface
+│   ├── ui/components/           # Modular UI components
+│   │   ├── dashboard.py        # Dashboard generation interface
+│   │   ├── chat.py             # Chat interface with memory
+│   │   ├── memory.py           # Memory management UI
+│   │   └── tabs.py             # Navigation system
 ├── 📚 Documentation
 │   ├── Docs/                   # Comprehensive guides
 │   └── streamlit_guide.md      # Web UI documentation

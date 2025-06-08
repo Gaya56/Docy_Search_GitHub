@@ -24,6 +24,7 @@ from docy_search.memory.cost_tracker import CostTracker
 from docy_search.ui.components.sidebar import SidebarComponent
 from docy_search.ui.components.chat import ChatComponent
 from docy_search.ui.components.memory import MemoryComponent
+from docy_search.ui.components.dashboard import DashboardComponent
 from docy_search.ui.utils.styles import inject_all_styles
 
 # Import from existing app.py
