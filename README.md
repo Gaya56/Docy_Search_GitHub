@@ -44,39 +44,39 @@ Enterprise-grade memory capabilities with async operations, database migrations,
 ```
 Docy_Search_GitHub/
 ├── 🎯 Core Applications
-│   ├── app.py                    # CLI interface with async memory
-│   └── main_ui.py               # Streamlit web interface
+│   ├── docy_search/app.py           # CLI interface with async memory
+│   └── docy_search/main_ui.py       # Streamlit web interface
 ├── 🧠 Memory System (Phase 1 Complete)
-│   ├── memory/
-│   │   ├── sqlite_memory.py     # Async + Sync SQLite operations
-│   │   ├── memory_manager.py    # Async memory with OpenAI embeddings
-│   │   └── README.md           # Memory system documentation
+│   ├── docy_search/memory/
+│   │   ├── sqlite_memory.py         # Async + Sync SQLite operations
+│   │   ├── memory_manager.py        # Async memory with OpenAI embeddings
+│   │   └── README.md               # Memory system documentation
 ├── 📊 Dashboard System (NEW)
-│   ├── dashboard/
-│   │   ├── generator.py         # AI-powered dashboard orchestration
-│   │   ├── validators.py        # Data validation and schema checking
-│   │   └── prompts.py          # AI prompts for dashboard generation
-│   └── database/
-│       ├── sql_agent.py        # Natural language SQL queries
-│       └── connection_manager.py # Database connection with timeout handling
+│   ├── docy_search/dashboard/
+│   │   ├── generator.py             # AI-powered dashboard orchestration
+│   │   ├── validators.py            # Data validation and schema checking
+│   │   └── prompts.py              # AI prompts for dashboard generation
+│   └── docy_search/database/
+│       ├── sql_agent.py            # Natural language SQL queries
+│       └── connection_manager.py   # Database connection with timeout handling
 ├── 🔧 Tool Recommendation
-│   ├── tool_recommendation/     # MCP server for tool analysis
-│   ├── brave_search.py         # Live web search integration
-│   ├── github_mcp_server.py    # GitHub repository access
-│   └── python_tools.py         # Python-specific tooling
+│   ├── docy_search/tool_recommendation/ # MCP server for tool analysis
+│   ├── docy_search/brave_search.py     # Live web search integration
+│   ├── docy_search/github_mcp_server.py # GitHub repository access
+│   └── docy_search/python_tools.py     # Python-specific tooling
 ├── 🖥️ User Interface
-│   ├── ui/components/           # Modular UI components
-│   │   ├── dashboard.py        # Dashboard generation interface
-│   │   ├── chat.py             # Chat interface with memory
-│   │   ├── memory.py           # Memory management UI
-│   │   └── tabs.py             # Navigation system
-├── 📚 Documentation
-│   ├── Docs/                   # Comprehensive guides
-│   └── streamlit_guide.md      # Web UI documentation
-└── 🗃️ Data & Configuration
-    ├── data/memories.db        # SQLite database with async support
-    ├── .user_session          # Persistent session tracking
-    └── project_context.md     # Project-specific context
+│   ├── docy_search/ui/components/      # Modular UI components
+│   │   ├── dashboard.py            # Dashboard generation interface
+│   │   ├── chat.py                 # Chat interface with memory
+│   │   ├── memory.py               # Memory management UI
+│   │   └── tabs.py                 # Navigation system
+├── 📚 Configuration
+│   ├── config/                     # Application configuration
+│   └── project_context.md          # Project-specific context
+└── 🗃️ Data & Storage
+    ├── data/memories.db            # SQLite database with async support
+    ├── .user_session              # Persistent session tracking
+    └── requirements.txt            # Python dependencies
 ```
 
 ## 🚀 **Quick Start**
@@ -97,7 +97,7 @@ cp .env.example .env
 source .venv/bin/activate
 
 # Run CLI with async memory
-python3 app.py
+python3 docy_search/app.py
 ```
 
 ### Option 2: Web Interface (Recommended)
@@ -106,7 +106,7 @@ python3 app.py
 source .venv/bin/activate
 
 # Launch Streamlit UI with memory management
-streamlit run main_ui.py --server.port 8555
+streamlit run docy_search/main_ui.py --server.port 8555
 ```
 
 ### First Time Setup
@@ -158,7 +158,7 @@ The intelligent memory system has been **successfully implemented and integrated
 
 1. **Start the Web UI:**
    ```bash
-   streamlit run main_ui.py --server.port 8555
+   streamlit run docy_search/main_ui.py --server.port 8555
    ```
 
 2. **Access in Browser:**
@@ -174,7 +174,7 @@ The intelligent memory system has been **successfully implemented and integrated
 
 1. **Start Terminal Chat:**
    ```bash
-   python app.py
+   python docy_search/app.py
    ```
 
 ### 🧠 Memory-Enhanced Interactions (Both Interfaces)
@@ -304,50 +304,63 @@ Each tool recommendation includes:
 
 ```text
 Docy_Search/
-├── app.py                              # Main application with memory integration (CLI)
-├── main_ui.py                          # 🆕 Streamlit Web UI for the assistant
-├── streamlit_guide.md                  # 🆕 Streamlit UI usage guide
-├── memory/                             # 🆕 Intelligent Memory System
-│   ├── memory_manager.py              # 🆕 AI-powered memory operations with embeddings
-│   ├── sqlite_memory.py               # 🆕 SQLite database operations for persistence
-│   ├── __init__.py                    # 🆕 Memory system exports
-│   └── README.md                      # 🆕 Complete memory system documentation
-├── data/                              # 🆕 Data storage
-│   └── memories.db                    # 🆕 SQLite database for conversation history
-├── .user_session                      # 🆕 Persistent user session ID
-├── github_mcp_server.py               # GitHub repository integration
-├── brave_search.py                    # Search API integration
-├── python_tools.py                    # Utility functions
-├── project_context.md                 # Your project details (auto-loaded)
-├── requirements.txt                   # Dependencies (including memory system + Streamlit)
-├── .env                              # API keys (create this)
-├── tool_recommendation/
-│   ├── mcp_server.py                 # Core recommendation engine
-│   ├── search_engine.py              # Search functionality
-│   ├── analyzer.py                   # AI analysis tools
-│   ├── installer.py                  # Installation guides
-│   ├── core.py                       # Core logic
-│   └── models.py                     # Data models
-├── tests/
-│   ├── test_tool_recommendation.py   # Tool recommendation tests
-│   └── test_github_server.py         # GitHub integration tests
-├── demos/
-│   ├── demo_tool_recommendation.py   # Demo script
-│   └── demo_tool_recommendation_fixed.py
-└── Docs/
-    ├── Tool_Recommendation_Guide.md   # Detailed usage guide
-    ├── IMPLEMENTATION_SUMMARY.md      # Technical implementation details
-    ├── project_context_example.md     # Example project context
-    └── Workflow.md                    # Development workflow
+├── docy_search/
+│   ├── app.py                              # Main application with memory integration (CLI)
+│   ├── main_ui.py                          # 🆕 Streamlit Web UI for the assistant
+│   ├── activity_tracker.py                 # 🆕 Real-time activity and cost tracking
+│   ├── memory/                             # 🆕 Intelligent Memory System
+│   │   ├── memory_manager.py              # 🆕 AI-powered memory operations with embeddings
+│   │   ├── sqlite_memory.py               # 🆕 SQLite database operations for persistence
+│   │   ├── cost_tracker.py                # 🆕 API cost tracking and optimization
+│   │   ├── __init__.py                    # 🆕 Memory system exports
+│   │   └── README.md                      # 🆕 Complete memory system documentation
+│   ├── dashboard/                          # 🆕 AI-Powered Dashboard System
+│   │   ├── generator.py                   # 🆕 Dashboard orchestration and generation
+│   │   ├── validators.py                  # 🆕 Data validation and schema checking
+│   │   └── prompts.py                     # 🆕 AI prompts for dashboard generation
+│   ├── database/                          # 🆕 Database Integration
+│   │   ├── sql_agent.py                   # 🆕 Natural language SQL queries
+│   │   ├── sql_agent_simple.py           # 🆕 Simplified SQL operations
+│   │   └── connection_manager.py          # 🆕 Database connection management
+│   ├── tool_recommendation/               # 🆕 Tool Analysis Engine
+│   │   ├── mcp_server.py                  # Core recommendation engine
+│   │   ├── search_engine.py               # Search functionality
+│   │   ├── analyzer.py                    # AI analysis tools
+│   │   ├── installer.py                   # Installation guides
+│   │   ├── core.py                        # Core logic
+│   │   └── models.py                      # Data models
+│   ├── ui/                                # 🆕 Streamlit UI Components
+│   │   ├── components/                    # Modular UI components
+│   │   │   ├── chat.py                    # Chat interface with memory
+│   │   │   ├── dashboard.py               # Dashboard generation interface
+│   │   │   ├── memory.py                  # Memory management UI
+│   │   │   ├── sidebar.py                 # Navigation sidebar
+│   │   │   └── tabs.py                    # Tab navigation system
+│   │   └── utils/                         # UI utilities
+│   │       └── styles.py                  # Styling and theming
+│   ├── github_mcp_server.py               # GitHub repository integration
+│   ├── brave_search.py                    # Search API integration
+│   └── python_tools.py                    # Utility functions
+├── config/                                # 🆕 Application Configuration
+│   ├── __init__.py                        # Configuration exports
+│   └── settings.py                        # Application settings
+├── data/                                  # 🆕 Data storage
+│   └── memories.db                        # 🆕 SQLite database for conversation history
+├── .user_session                          # 🆕 Persistent user session ID
+├── project_context.md                     # Your project details (auto-loaded)
+├── requirements.txt                       # Dependencies (including memory system + Streamlit)
+├── pyproject.toml                         # 🆕 Modern Python project configuration
+├── uv.lock                               # 🆕 Dependency lock file
+└── .env                                  # API keys (create this)
 ```
 
 ## 🤝 Contributing
 
 This project uses a modular MCP (Model Context Protocol) architecture. To add new functionality:
 
-1. Create new MCP server in appropriate directory
-2. Follow the existing pattern (see `tool_recommendation/mcp_server.py` or `github_mcp_server.py`)
-3. Add server to `app.py`
+1. Create new MCP server in `docy_search/` directory
+2. Follow the existing pattern (see `docy_search/tool_recommendation/mcp_server.py` or `docy_search/github_mcp_server.py`)
+3. Add server to `docy_search/app.py`
 4. Update system prompt if needed
 
 ### Key Components:
@@ -357,7 +370,7 @@ This project uses a modular MCP (Model Context Protocol) architecture. To add ne
 - **Permission System**: User consent required for external API calls (GitHub, web search)
 - **Multi-AI Support**: Flexible AI model selection for different use cases
 
-For detailed usage examples, see `Docs/Tool_Recommendation_Guide.md`.
+For detailed implementation information, explore the codebase in the `docy_search/` directory.
 
 ## 🎯 System Capabilities
 
