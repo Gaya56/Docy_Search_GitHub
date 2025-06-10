@@ -40,9 +40,14 @@ class SidebarComponent:
             st.session_state.previous_ai_model = st.session_state.selected_ai_model
     
     def _check_database_config(self) -> bool:
-        """Check if database is configured"""
-        required = ["DB_HOST", "DB_USER", "DB_PASSWORD", "DB_NAME"]
-        return all(os.getenv(var) for var in required)
+        """Check if SQLite database is available"""
+        try:
+            from docy_search.database.db_manager import get_db_manager
+            # Try to initialize database manager
+            db = get_db_manager()
+            return True
+        except Exception:
+            return False
     
     def render(self) -> Dict[str, Any]:
         """Render sidebar and return configuration changes"""
@@ -358,7 +363,7 @@ class SidebarComponent:
             # After SQL Database checkbox
             if tool_info["key"] == "sql_database":
                 if not self._check_database_config():
-                    st.warning("⚠️ Database not configured. Add DB credentials to .env")
+                    st.warning("⚠️ SQLite database not available")
                     st.session_state.selected_tools["sql_database"] = False
         
         # Detect tool selection changes and clear agent cache
