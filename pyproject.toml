@@ -1,0 +1,56 @@
+[project]
+name = "docy-search"
+version = "2.0.0"
+description = "Intelligent Tool Recommendation System with Advanced Memory"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "pydantic-ai",
+    "pydantic-ai[openai]",
+    "pydantic-ai[anthropic]",
+    "pydantic-ai[google-generativeai]",
+    "mcp",
+    "python-dotenv",
+    "matplotlib",
+    "numpy",
+    "openai",
+    "requests",
+    "shcheck",
+    "webtech",
+    "google-generativeai",
+    "aiohttp",
+    "fastmcp",
+    "streamlit",
+    "plotly",
+    "aiosqlite",
+    "aiofiles",
+    "tiktoken",
+    "pydantic-settings>=2.0.0",
+    "flake8>=7.2.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-asyncio",
+    "pytest-cov",
+    "black",
+    "isort",
+    "flake8",
+    "mypy"
+]
+
+[project.scripts]
+docy-cli = "docy_search.app:main"
+docy-web = "docy_search.main_ui:main"
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["docy_search*", "ui*", "memory*", "tool_recommendation*"]
+
+[tool.setuptools.package-data]
+"*" = ["*.md", "*.txt", "*.json"]

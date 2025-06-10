@@ -1,409 +1,154 @@
-# Intelligent Tool Recommendation System with Memory
+# 🔧 Docy Search - AI Tool Recommendation Assistant
 
-This repository contains an intelligent, context-aware tool recommendation system with **fully operational persistent memory capabilities** designed to help developers discover, analyze, and implement the best technical tools for their specific projects. The system combines live web search (via Brave API), AI-powered analysis, GitHub repository integration, and **intelligent memory storage with real OpenAI embeddings** to provide personalized tool recommendations that improve over time. Built on a clean, modular architecture using Pydantic AI and the Model Context Protocol (MCP), it reads your project context and **remembers your preferences** to provide increasingly personalized suggestions based on your tech stack, budget constraints, development goals, and conversation history.
+**An intelligent AI assistant with SQLite database, semantic memory, and comprehensive web interface**
 
-## 🚀 Key Features
+## ✅ **Status: FULLY OPERATIONAL - Production Ready**
 
-### 🧠 **✅ FULLY OPERATIONAL: Intelligent Memory System**
+Complete AI assistant with SQLite database integration, chat history tracking, dashboard generation, and multi-model support.
 
-- **Persistent Conversations**: ✅ **WORKING** - Remembers your tool preferences and past discussions
-- **Semantic Search**: ✅ **WORKING** - Uses OpenAI `text-embedding-3-small` for intelligent memory retrieval
-- **Session Continuity**: ✅ **WORKING** - Maintains context across app restarts with persistent user sessions
-- **Personalized Recommendations**: ✅ **WORKING** - Improves suggestions based on conversation history
-- **Privacy-First**: ✅ **IMPLEMENTED** - All memory stored locally in SQLite database
-- **Graceful Degradation**: ✅ **TESTED** - Works perfectly with or without memory features
-- **Real Embeddings**: ✅ **INTEGRATED** - Live OpenAI embedding generation for semantic similarity
+---
 
-### 🌐 **✅ NEW: Beautiful Web Interface**
+## 🚀 **Quick Start**
 
-- **Streamlit UI**: ✅ **WORKING** - Modern web interface for the assistant (`main_ui.py`)
-- **Dual Interface**: ✅ **AVAILABLE** - Both command line (`app.py`) and web UI (`streamlit run main_ui.py`)
-- **Memory Integration**: ✅ **WORKING** - Full memory system support in web interface
-- **Session Persistence**: ✅ **WORKING** - User sessions work across both interfaces
-- **Real-time Updates**: ✅ **WORKING** - Live conversation with memory saving indicators
-
-### Tool Recommendation Engine
-
-- **Live Web Search**: Uses Brave API for current tool discovery
-- **AI-Powered Analysis**: Gemini AI evaluates tools for relevance, reliability, and ease of use
-- **Smart Rankings**: Tools ranked based on multiple criteria including community support and security
-- **Installation Guides**: Automatic generation of official installation instructions
-- **Comparative Analysis**: Side-by-side tool comparisons
-- **Task-Specific Recommendations**: Curated suggestions for specific development workflows
-
-### GitHub Integration
-
-- **Repository Discovery**: Search for official GitHub repositories of recommended tools
-- **Code Examples**: Access real implementation examples and setup files
-- **Project Structure Analysis**: View repository structure and key files
-- **Direct Links**: Get direct links to GitHub repositories and documentation
-- **Permission-Based Access**: Secure GitHub integration with user consent
-
-### Development Tool Discovery
-
-- **Multi-Category Support**: Web development, mobile apps, desktop applications, databases, DevOps, testing, design, data science, AI/ML, game development, security, and productivity tools
-- **Framework Recommendations**: React, Vue.js, Angular, Django, Flask, Express.js, and more
-- **Tool Comparison**: Side-by-side analysis of similar tools
-- **Technology Stack Guidance**: Complete toolchain recommendations for specific project types
-
-### Project Context Awareness
-
-- **Smart Context Loading**: Automatically loads your project details from `project_context.md`
-- **Targeted Recommendations**: Suggests tools based on your specific tech stack, challenges, and goals
-- **Budget-Aware Suggestions**: Considers your budget constraints and preferences
-- **Skill-Level Appropriate**: Recommendations matched to your experience level
-
-### Multi-AI Support
-
-- **OpenAI GPT Models** (default)
-- **Anthropic Claude**
-- **Google Gemini**
-- **DeepSeek** (via OpenAI API)
-
-## 🛠 Architecture
-
-Built on **Pydantic AI** and **Model Context Protocol (MCP)** for clean, modular design:
-
-```text
-app.py                          # Main chat interface with memory integration
-main_ui.py                      # 🆕 Streamlit Web UI for the assistant
-memory/
-├── memory_manager.py          # 🆕 AI-powered memory operations with embeddings
-├── sqlite_memory.py           # 🆕 SQLite database operations for persistence
-├── __init__.py                # 🆕 Memory system exports
-└── README.md                  # 🆕 Complete memory system documentation
-tool_recommendation/
-└── mcp_server.py              # Intelligent tool discovery & analysis
-github_mcp_server.py           # GitHub repository integration
-brave_search.py                # Brave API integration
-python_tools.py                # Data processing utilities
-project_context.md             # Your project details (auto-loaded)
-data/
-└── memories.db                # 🆕 SQLite database for conversation history
-.user_session                  # 🆕 Persistent user session ID
-streamlit_guide.md             # 🆕 Streamlit UI usage guide
-```
-
-**Current Status:** ✅ **FULLY OPERATIONAL** - Complete system with **working intelligent memory capabilities** including real OpenAI embeddings, **beautiful Streamlit web interface**, tool recommendation, GitHub integration, multi-AI support, interactive chat with permission prompts, project context awareness, and comprehensive development tool analysis capabilities. Both command line and web interfaces are fully functional with zero breaking changes.
-
-## 🚀 Quick Start
-
-### 1. Installation
-
+### Installation
 ```bash
-# Clone the repository
-git clone <repository-url>
-cd Docy_Search
+# 1. Clone repository
+git clone https://github.com/yourusername/Docy_Search_GitHub.git
+cd Docy_Search_GitHub
 
-# Install dependencies
-pip install -r requirements.txt
+# 2. Install dependencies
+pip install uv && uv sync
+
+# 3. Set up API keys (optional)
+cp .env.example .env
+# Edit .env with your API keys
 ```
 
-### 2. Configuration
-
-Create a `.env` file with your API keys:
-
-```env
-# Required for tool recommendation system
-BRAVE_API_KEY=your_brave_search_api_key
-GOOGLE_API_KEY=your_gemini_api_key
-
-# Required for GitHub integration
-GITHUB_TOKEN=your_github_token
-
-# 🆕 Required for memory system embeddings (optional - system works without)
-OPENAI_API_KEY=your_openai_key
-
-# Optional: Choose your preferred AI model
-AI_MODEL=gemini  # Options: openai, claude, gemini, deepseek
-
-# Add other API keys as needed
-ANTHROPIC_API_KEY=your_claude_key
-DEEPSEEK_API_KEY=your_deepseek_key
-```
-
-### 3. Set Up Project Context (Optional)
-
-Create a `project_context.md` file with details about your project:
-
+### Launch Application
 ```bash
-# Copy the example and customize it
-cp project_context_example.md project_context.md
-# Edit with your project details
-nano project_context.md
+# Web Interface (Recommended)
+uv run streamlit run docy_search/main_ui.py
+
+# Command Line Interface  
+uv run python docy_search/app.py
+
+# Database Utilities
+uv run python scripts/view_chats.py          # View chat history
+uv run python scripts/database_explorer.py  # Interactive database browser
 ```
 
-The assistant will automatically load this context and provide more targeted recommendations based on your specific project, tech stack, and goals.
+---
 
-### 4. Start the Application
+## 🗄️ **SQLite Database Features (NEW)**
 
-Choose your preferred interface:
+### **Zero Configuration**
+- ✅ **No credentials required** - Works out of the box
+- ✅ **Auto-created database** - `docy_search.db` generated on first run
+- ✅ **Cross-platform** - Works on Windows, macOS, Linux
 
-#### 🖥️ **Command Line Interface (Terminal)**
-```bash
-# Start the interactive chat with memory system
-python app.py
+### **Automatic Data Tracking**
+- ✅ **Chat history** - All conversations saved with metadata
+- ✅ **Memory persistence** - Semantic search with OpenAI embeddings
+- ✅ **Activity logging** - Complete audit trail of operations
+- ✅ **Cost tracking** - API usage per model/user
+
+### **Web UI Database Viewer**
+- 📊 Browse chat history with full conversation details
+- 📈 Real-time database statistics and metrics
+- 📤 Export data in CSV/JSON formats
+- 🔍 Search and filter conversations
+
+---
+
+## 🧠 **Key Features**
+
+### **AI-Powered Dashboard Generator**
+- Automatic SQLite schema analysis
+- Interactive HTML dashboards with visualizations
+- Real-time database metrics and insights
+- Export standalone HTML files
+
+### **Advanced Memory System**
+- Semantic search using OpenAI embeddings
+- Multi-user session isolation
+- Graceful degradation without API keys
+- Async operations for performance
+
+### **Tool Recommendation Engine**
+- Live web search via Brave Search API
+- GitHub integration with repository access
+- AI-powered quality scoring and analysis
+- Step-by-step installation guides
+
+### **Complete Web Interface**
+- Modern Streamlit UI with real-time chat
+- Tool selection dashboard (Web Search, GitHub, Python Tools, etc.)
+- AI model selection (OpenAI, Claude, Gemini, DeepSeek)
+- Live activity tracking and cost monitoring
+
+---
+
+## 📊 **Database Schema**
+
+SQLite tables automatically created:
+
+```sql
+-- Chat conversations with metadata
+CREATE TABLE chat_history (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id TEXT NOT NULL,
+    prompt TEXT NOT NULL,
+    response TEXT NOT NULL,
+    model_used TEXT,
+    tools_used TEXT, -- JSON array
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    memory_id TEXT,
+    cost REAL DEFAULT 0.0
+);
+
+-- Memory entries for semantic search
+CREATE TABLE memory_entries (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    memory_id TEXT UNIQUE NOT NULL,
+    user_id TEXT NOT NULL,
+    content TEXT NOT NULL,
+    metadata TEXT, -- JSON
+    status TEXT DEFAULT 'active',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Activity tracking for analytics
+CREATE TABLE activity_log (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id TEXT NOT NULL,
+    activity_type TEXT NOT NULL,
+    description TEXT,
+    metadata TEXT, -- JSON
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+);
 ```
 
-#### 🌐 **Web Interface (Streamlit UI)**
-```bash
-# Start the beautiful web interface
-streamlit run main_ui.py --server.port 8555
-# Then open: http://localhost:8555
-```
+---
 
-**🧠 Memory System Features:**
+## 💡 **Usage Examples**
 
-- **First Run**: Creates user session and initializes database
-- **Subsequent Runs**: Loads previous conversation history  
-- **Smart Context**: Uses past discussions to enhance recommendations
-- **Privacy**: All data stored locally, never shared externally
+### Web Interface
+1. Start: `streamlit run docy_search/main_ui.py`
+2. Access: `http://localhost:8501`
+3. Features: Real-time chat, tool selection, database viewer, dashboard generation
 
-### 5. Test the System
-
-```bash
-# Test tool recommendation functionality
-python tests/test_tool_recommendation.py
-
-# Test GitHub integration
-python tests/test_github_server.py
-
-# Run demo examples
-python demos/demo_tool_recommendation.py
-```
-
-## 🎉 Implementation Success Story
-
-### ✅ Memory System: From Concept to Reality
-
-The intelligent memory system has been **successfully implemented and integrated** with the following achievements:
-
-**🏗️ Complete 3-Layer Architecture:**
-- **SQLiteMemory**: Production-ready database layer with JSON serialization and proper indexing
-- **MemoryManager**: AI-powered memory management with real OpenAI `text-embedding-3-small` embeddings  
-- **Integration**: Seamless app.py integration with comprehensive error handling
-
-**🧠 Real AI Features Working:**
-- ✅ **Semantic Search**: Live OpenAI embeddings with cosine similarity calculations
-- ✅ **Persistent Sessions**: User sessions survive app restarts via `.user_session` file
-- ✅ **Context Loading**: Previous memories automatically loaded into agent context
-- ✅ **Smart Saving**: Significant interactions (>100 chars) automatically stored
-
-**🛡️ Production-Grade Safety:**
-- ✅ **Zero Breaking Changes**: Existing functionality unchanged and fully backward compatible
-- ✅ **Graceful Degradation**: App works perfectly with or without memory/embeddings
-- ✅ **Error Isolation**: All memory operations wrapped in try/catch with silent fallbacks
-- ✅ **Privacy First**: All data stored locally in SQLite, never shared externally
-
-**📊 Real Testing Results:**
-- ✅ Successfully tested with actual OpenAI API integration
-- ✅ Memory save/retrieve cycle working with real embeddings
-- ✅ Session persistence confirmed across app restarts
-- ✅ Error handling validated for all failure scenarios
-
-**The memory system transforms conversations from stateless interactions into intelligent, contextual dialogues that improve over time.**
-
-## 💡 Usage Examples
-
-### 🌐 **Web Interface (Streamlit)**
-
-1. **Start the Web UI:**
-   ```bash
-   streamlit run main_ui.py --server.port 8555
-   ```
-
-2. **Access in Browser:**
-   - Open: `http://localhost:8555`
-   - Beautiful chat interface with real-time responses
-   - Memory status indicators in sidebar
-   - Session persistence across browser sessions
-
-### 🖥️ **Command Line Interface**
-
-1. **Start Terminal Chat:**
-   ```bash
-   python app.py
-   ```
-
-### 🧠 Memory-Enhanced Interactions (Both Interfaces)
-
+### Memory-Enhanced Conversations
 ```text
 # First conversation
-User: "I need tools for React development"
-Bot: I'll search for React development tools and analyze the best options...
-     💾 Memory saved (ID: 1)
+User: "I need React development tools"
+Bot: [Provides recommendations] 💾 Memory saved
 
-# Later conversation (same session or after restart)
+# Later conversation  
 User: "What about state management?"
-Bot: ✅ I remember you're working with React! Based on our previous discussion...
-     [Provides Redux, Zustand, Context API recommendations specific to React]
-     💾 Memory saved (ID: 2)
-
-# Even later
-User: "Now I need testing tools"
-Bot: Given your React project with Redux (from our earlier conversations)...
-     [Suggests Jest, React Testing Library, Cypress for React/Redux stack]
+Bot: ✅ I remember your React project! Here are Redux/Zustand options...
 ```
 
-### Tool Discovery & Recommendations
-
-```text
-User: "I need tools for React web development"
-Bot: I'll search for React development tools and analyze the best options...
-
-User: "Compare Vue.js vs Angular"
-Bot: I'll provide a detailed comparison of these JavaScript frameworks...
-
-User: "How do I set up a Django project?"
-Bot: I'll generate step-by-step setup instructions for Django development...
-```
-
-### GitHub Integration
-
-```text
-User: "Find the official React repository and show me setup examples"
-Bot: I can search GitHub repositories for React setup examples. This will access public GitHub data to find official repositories and code examples. Continue? (y/n)
-
-User: "y"
-Bot: [Shows React repository details, stars, and relevant setup files]
-```
-
-### Development Workflows
-
-```text
-User: "What's the best database for a Node.js project?"
-Bot: I'll recommend databases that work well with Node.js and provide setup guides...
-
-User: "Set up a complete full-stack development environment"
-Bot: I'll suggest tools and provide setup instructions for frontend, backend, and database tools...
-```
-
-### Project Context-Aware Recommendations
-
-```text
-User: "What tools would be best for this project?"
-Bot: ✅ I have your project context loaded and ready to help!
-     Based on your task management app with React + Node.js + PostgreSQL...
-     [Provides targeted recommendations for your specific stack and challenges]
-```
-
-## 🔧 Advanced Features
-
-### Tool Categories
-
-- **Web Development**: React, Vue.js, Angular, Django, Flask, Express.js
-- **Mobile Development**: React Native, Flutter, Xamarin, Ionic
-- **Desktop Applications**: Electron, Tauri, Qt, .NET
-- **Databases**: PostgreSQL, MongoDB, Redis, MySQL, SQLite
-- **DevOps**: Docker, Kubernetes, Jenkins, GitLab CI, Terraform
-- **Testing**: Jest, Pytest, Selenium, Cypress, Postman
-- **Design**: Figma, Sketch, Adobe XD, Canva, GIMP
-- **Data Science**: Pandas, NumPy, Jupyter, Tableau, Power BI
-- **AI/ML**: TensorFlow, PyTorch, Scikit-learn, Keras
-- **Game Development**: Unity, Unreal Engine, Godot, Phaser
-- **Security**: OWASP tools, security scanners, encryption libraries
-- **Productivity**: VS Code, Git, Slack, Notion, Trello
-
-### AI-Powered Analysis
-
-Each tool recommendation includes:
-
-- **Relevance Score** (1-10)
-- **Reliability Assessment**
-- **Installation Complexity** (Easy/Medium/Hard)
-- **Community Support Rating**
-- **Security & Trust Evaluation**
-- **Use Case Scenarios**
-
-### Integration Benefits
-
-- **Live Data**: Always current tool information via Brave Search
-- **Smart Analysis**: AI evaluates beyond simple search results
-- **Practical Focus**: Real installation guides and usage tips
-- **Skill-Adaptive**: Recommendations match user experience level
-- **Development-Focused**: Tailored for software development workflows
-
-## 📁 File Structure
-
-```text
-Docy_Search/
-├── app.py                              # Main application with memory integration (CLI)
-├── main_ui.py                          # 🆕 Streamlit Web UI for the assistant
-├── streamlit_guide.md                  # 🆕 Streamlit UI usage guide
-├── memory/                             # 🆕 Intelligent Memory System
-│   ├── memory_manager.py              # 🆕 AI-powered memory operations with embeddings
-│   ├── sqlite_memory.py               # 🆕 SQLite database operations for persistence
-│   ├── __init__.py                    # 🆕 Memory system exports
-│   └── README.md                      # 🆕 Complete memory system documentation
-├── data/                              # 🆕 Data storage
-│   └── memories.db                    # 🆕 SQLite database for conversation history
-├── .user_session                      # 🆕 Persistent user session ID
-├── github_mcp_server.py               # GitHub repository integration
-├── brave_search.py                    # Search API integration
-├── python_tools.py                    # Utility functions
-├── project_context.md                 # Your project details (auto-loaded)
-├── requirements.txt                   # Dependencies (including memory system + Streamlit)
-├── .env                              # API keys (create this)
-├── tool_recommendation/
-│   ├── mcp_server.py                 # Core recommendation engine
-│   ├── search_engine.py              # Search functionality
-│   ├── analyzer.py                   # AI analysis tools
-│   ├── installer.py                  # Installation guides
-│   ├── core.py                       # Core logic
-│   └── models.py                     # Data models
-├── tests/
-│   ├── test_tool_recommendation.py   # Tool recommendation tests
-│   └── test_github_server.py         # GitHub integration tests
-├── demos/
-│   ├── demo_tool_recommendation.py   # Demo script
-│   └── demo_tool_recommendation_fixed.py
-└── Docs/
-    ├── Tool_Recommendation_Guide.md   # Detailed usage guide
-    ├── IMPLEMENTATION_SUMMARY.md      # Technical implementation details
-    ├── project_context_example.md     # Example project context
-    └── Workflow.md                    # Development workflow
-```
-
-## 🤝 Contributing
-
-This project uses a modular MCP (Model Context Protocol) architecture. To add new functionality:
-
-1. Create new MCP server in appropriate directory
-2. Follow the existing pattern (see `tool_recommendation/mcp_server.py` or `github_mcp_server.py`)
-3. Add server to `app.py`
-4. Update system prompt if needed
-
-### Key Components:
-
-- **MCP Servers**: Modular tools for specific functionality (tool search, GitHub integration, etc.)
-- **Project Context**: Automatic loading of user project details for targeted recommendations
-- **Permission System**: User consent required for external API calls (GitHub, web search)
-- **Multi-AI Support**: Flexible AI model selection for different use cases
-
-For detailed usage examples, see `Docs/Tool_Recommendation_Guide.md`.
-
-## 🎯 System Capabilities
-
-### ✅ Fully Implemented Features
-
-- **🧠 Intelligent Memory**: ✅ **OPERATIONAL** - Persistent conversation history with semantic search using OpenAI embeddings
-- **🌐 Web Interface**: ✅ **OPERATIONAL** - Beautiful Streamlit UI with real-time chat and memory indicators
-- **🖥️ CLI Interface**: ✅ **OPERATIONAL** - Command line interface for terminal users
-- **🔍 Tool Discovery**: ✅ **OPERATIONAL** - Live web search with AI-powered analysis
-- **📊 Smart Rankings**: ✅ **OPERATIONAL** - Multi-criteria tool evaluation and comparison
-- **📚 Installation Guides**: ✅ **OPERATIONAL** - Automatic generation of setup instructions
-- **🐙 GitHub Integration**: ✅ **OPERATIONAL** - Repository search, code examples, and project analysis
-- **🎯 Context Awareness**: ✅ **OPERATIONAL** - Project-specific recommendations based on your details
-- **🔐 Permission System**: ✅ **OPERATIONAL** - Secure API access with user consent
-- **🤖 Multi-AI Support**: ✅ **OPERATIONAL** - OpenAI, Claude, Gemini, and DeepSeek compatibility
-- **📱 Category Support**: ✅ **OPERATIONAL** - Web, mobile, desktop, database, DevOps, testing, design, data science, AI/ML, game development, security, productivity
-
-### 🚀 Ready to Use - Memory System + Web UI Live!
-
-Your intelligent development assistant with **fully operational persistent memory** and **beautiful web interface** is ready to help with tool discovery, GitHub repository analysis, and project-specific recommendations that improve over time. Choose between:
-
-- **🌐 Web Interface**: Run `streamlit run main_ui.py --server.port 8555` for a beautiful browser experience
-- **🖥️ Command Line**: Run `python app.py` for terminal-based interaction
-
-Both interfaces share the same memory system using real OpenAI embeddings for semantic search and maintain conversation context across sessions. Start building a conversation history that makes each interaction smarter than the last!
-
+### Database Access
+- **Web UI**: Dashboard → Database Viewer tab
+- **Scripts**: `python scripts/view_chats.py`
+- **Direct**: SQLite file at `docy_search.db`
