@@ -38,6 +38,8 @@ class SidebarComponent:
             st.session_state.selected_ai_model = "openai"
         if 'previous_ai_model' not in st.session_state:
             st.session_state.previous_ai_model = st.session_state.selected_ai_model
+        if 'memory_stats_loaded' not in st.session_state:
+            st.session_state.memory_stats_loaded = False
     
     def _check_database_config(self) -> bool:
         """Check if SQLite database is available"""
@@ -206,83 +208,88 @@ class SidebarComponent:
             st.rerun()
     
     def _render_memory_management(self):
-        """Memory management controls"""
+        """Memory management controls with proper async handling"""
         st.markdown("### 🧠 Memory Management")
         
-        # Get memory stats
-        if st.button("📊 Memory Stats", use_container_width=True):
-            try:
-                async def get_stats():
-                    try:
-                        stats = await self.memory_manager.async_manager.get_user_memory_stats(st.session_state.user_id)
-                        st.session_state.memory_stats = stats
-                    except:
-                        pass  # Fail silently
-                
-                # Update stats in background
-                try:
-                    loop = asyncio.new_event_loop()
-                    asyncio.set_event_loop(loop)
-                    loop.create_task(get_stats())
-                except:
-                    pass
-                
-                # Display cached stats
-                stats = st.session_state.memory_stats
-                st.write(f"**Total memories:** {stats['total']}")
-                st.write(f"**Active memories:** {stats['active']}")
-                st.write(f"**Compressed:** {stats['compressed']}")
-                st.write(f"**Archived:** {stats['archived']}")
-            except Exception as e:
-                st.error(f"Error getting stats: {e}")
+        # Auto-load stats on first render if not already loaded
+        if not st.session_state.get('memory_stats_loaded', False):
+            self._load_memory_stats()
+        
+        # Display current stats
+        stats = st.session_state.memory_stats
+        col1, col2 = st.columns(2)
+        with col1:
+            st.metric("Total", stats['total'])
+            st.metric("Active", stats['active'])
+        with col2:
+            st.metric("Compressed", stats['compressed'])
+            st.metric("Archived", stats['archived'])
+        
+        # Refresh button
+        if st.button("🔄 Refresh Stats", use_container_width=True):
+            self._load_memory_stats()
+            st.rerun()
         
         # Memory maintenance
         if st.button("🔧 Run Maintenance", use_container_width=True):
-            try:
-                async def run_maintenance():
-                    try:
-                        results = await self.memory_manager.async_manager.perform_memory_maintenance()
-                        st.session_state.maintenance_results = results
-                    except:
-                        pass  # Fail silently
-                
-                with st.spinner("Running memory maintenance..."):
-                    # Run maintenance in background
-                    try:
-                        loop = asyncio.new_event_loop()
-                        asyncio.set_event_loop(loop)
-                        loop.create_task(run_maintenance())
-                    except:
-                        pass
-                    
-                    # Show cached results
-                    results = st.session_state.maintenance_results
-                    st.success(f"Compressed: {results['compressed']}, Archived: {results['archived']} memories")
-            except Exception as e:
-                st.error(f"Error running maintenance: {e}")
+            self._run_memory_maintenance()
         
-        # Clear user memories
+        # Clear memories
         if st.button("🗑️ Clear All Memories", use_container_width=True):
-            try:
-                async def clear_memories():
-                    try:
-                        cleared = await self.memory_manager.async_manager.clear_user_memories(st.session_state.user_id)
-                        st.session_state.cleared_count = cleared
-                    except:
-                        pass  # Fail silently
+            self._clear_user_memories()
+
+    def _load_memory_stats(self):
+        """Load memory statistics using proper async handling"""
+        try:
+            async def get_stats_async():
+                return await self.memory_manager.async_manager.get_user_memory_stats(st.session_state.user_id)
+            
+            with st.spinner("Loading memory stats..."):
+                import asyncio
+                stats = asyncio.run(get_stats_async())
+                st.session_state.memory_stats = stats
+                st.session_state.memory_stats_loaded = True
                 
-                # Clear memories in background
-                try:
-                    loop = asyncio.new_event_loop()
-                    asyncio.set_event_loop(loop)
-                    loop.create_task(clear_memories())
-                except:
-                    pass
+        except Exception as e:
+            st.error(f"Could not load memory stats: {e}")
+            # Set fallback stats
+            st.session_state.memory_stats = {
+                'total': 0, 'active': 0, 'compressed': 0, 'archived': 0
+            }
+
+    def _run_memory_maintenance(self):
+        """Run memory maintenance using proper async handling"""
+        try:
+            async def maintenance_async():
+                return await self.memory_manager.async_manager.perform_memory_maintenance()
+            
+            with st.spinner("Running memory maintenance..."):
+                import asyncio
+                results = asyncio.run(maintenance_async())
+                st.session_state.maintenance_results = results
+                st.success(f"Compressed: {results['compressed']}, Archived: {results['archived']} memories")
+                # Refresh stats after maintenance
+                self._load_memory_stats()
                 
-                # Show cached result
-                st.success(f"Cleared {st.session_state.cleared_count} memories")
-            except Exception as e:
-                st.error(f"Error clearing memories: {e}")
+        except Exception as e:
+            st.error(f"Maintenance failed: {e}")
+
+    def _clear_user_memories(self):
+        """Clear user memories using proper async handling"""
+        try:
+            async def clear_async():
+                return await self.memory_manager.async_manager.clear_user_memories(st.session_state.user_id)
+            
+            with st.spinner("Clearing memories..."):
+                import asyncio
+                cleared_count = asyncio.run(clear_async())
+                st.session_state.cleared_count = cleared_count
+                st.success(f"Cleared {cleared_count} memories")
+                # Refresh stats after clearing
+                self._load_memory_stats()
+                
+        except Exception as e:
+            st.error(f"Failed to clear memories: {e}")
     
     def _render_development_info(self):
         """Development information section"""

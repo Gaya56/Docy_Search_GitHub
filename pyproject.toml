@@ -25,7 +25,8 @@ dependencies = [
     "aiosqlite",
     "aiofiles",
     "tiktoken",
-    "pydantic-settings>=2.0.0"
+    "pydantic-settings>=2.0.0",
+    "flake8>=7.2.0",
 ]
 
 [project.optional-dependencies]
