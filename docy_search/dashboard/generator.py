@@ -2,6 +2,7 @@
 import asyncio
 import json
 from typing import Any, Dict, Optional
+from datetime import datetime
 
 from docy_search.activity_tracker import activity_tracker
 from docy_search.database import SQLAgent
@@ -69,30 +70,67 @@ class DashboardGenerator:
             raise
 
     async def _analyze_database_schema(self) -> Dict[str, Any]:
-        """Analyze database with retry logic"""
+        """Analyze SQLite database with retry logic"""
         async def analyze():
-            # Mock schema analysis - can be replaced with actual AI analysis
-            mock_schema = {
-                "database_summary": "Mock database analysis",
-                "key_metrics": [
-                    {
-                        "metric": "Total Records",
-                        "description": "Count of all records",
-                        "sql": ("SELECT COUNT(*) as total "
-                               "FROM information_schema.tables"),
-                        "type": "count"
-                    },
-                    {
-                        "metric": "Database Tables",
-                        "description": "Number of tables in database",
-                        "sql": ("SELECT COUNT(*) as table_count "
-                               "FROM information_schema.tables "
-                               "WHERE table_schema = DATABASE()"),
-                        "type": "count"
-                    }
-                ]
-            }
-            return validate_schema_analysis(mock_schema)
+            # Use our SQLite database manager for schema analysis
+            try:
+                from docy_search.database.db_manager import get_db_manager
+                db = get_db_manager()
+                db_stats = db.get_database_stats()
+                
+                # SQLite-compatible schema analysis
+                schema_analysis = {
+                    "database_summary": "SQLite database with chat history, memory entries, and activity logs",
+                    "key_metrics": [
+                        {
+                            "metric": "Total Chat Records",
+                            "description": "Number of chat interactions stored",
+                            "sql": "SELECT COUNT(*) as count FROM chat_history",
+                            "type": "count"
+                        },
+                        {
+                            "metric": "Memory Entries",
+                            "description": "Number of memory entries stored",
+                            "sql": "SELECT COUNT(*) as count FROM memory_entries",
+                            "type": "count"
+                        },
+                        {
+                            "metric": "Activity Logs",
+                            "description": "Number of activity log entries",
+                            "sql": "SELECT COUNT(*) as count FROM activity_log",
+                            "type": "count"
+                        },
+                        {
+                            "metric": "Recent Activity (24h)",
+                            "description": "Activity in the last 24 hours",
+                            "sql": "SELECT COUNT(*) as count FROM activity_log WHERE timestamp > datetime('now', '-24 hours')",
+                            "type": "count"
+                        },
+                        {
+                            "metric": "Total Database Records",
+                            "description": "Sum of all records across tables",
+                            "sql": "SELECT (SELECT COUNT(*) FROM chat_history) + (SELECT COUNT(*) FROM memory_entries) + (SELECT COUNT(*) FROM activity_log) as total",
+                            "type": "count"
+                        }
+                    ],
+                    "database_stats": db_stats
+                }
+                return validate_schema_analysis(schema_analysis)
+            except Exception as e:
+                # Fallback to basic mock analysis if database is not available
+                mock_schema = {
+                    "database_summary": "SQLite database (connection failed)",
+                    "key_metrics": [
+                        {
+                            "metric": "Database Status",
+                            "description": "Current database connectivity",
+                            "sql": "SELECT 'Database Unavailable' as status",
+                            "type": "status"
+                        }
+                    ],
+                    "error": str(e)
+                }
+                return validate_schema_analysis(mock_schema)
 
         return await retry_on_failure(analyze)
 
@@ -103,15 +141,41 @@ class DashboardGenerator:
         async def fetch_single_metric(metric):
             """Fetch data for a single metric with retry"""
             async def fetch():
-                data = await self.sql_agent.query(
-                    f"Execute this SQL: {metric['sql']}"
-                )
-                # Parse result as JSON if possible
                 try:
-                    parsed_data = json.loads(data)
-                except Exception:
-                    parsed_data = [{"result": data}]
-                return parsed_data
+                    # Use our SQLite database manager directly for better reliability
+                    from docy_search.database.db_manager import get_db_manager
+                    import sqlite3
+                    
+                    db = get_db_manager()
+                    sql_query = metric['sql']
+                    
+                    with sqlite3.connect(db.db_path) as conn:
+                        cursor = conn.cursor()
+                        cursor.execute(sql_query)
+                        result = cursor.fetchone()
+                        
+                        if result:
+                            # Convert to dictionary with proper column names
+                            columns = [description[0] for description in cursor.description]
+                            data = dict(zip(columns, result))
+                            return [data]
+                        else:
+                            return [{"result": "No data"}]
+                            
+                except Exception as e:
+                    # Fallback to SQL agent if direct query fails
+                    try:
+                        data = await self.sql_agent.query(
+                            f"Execute this SQL: {metric['sql']}"
+                        )
+                        # Parse result as JSON if possible
+                        try:
+                            parsed_data = json.loads(data)
+                        except Exception:
+                            parsed_data = [{"result": data}]
+                        return parsed_data
+                    except Exception:
+                        return [{"result": f"Error: {str(e)}"}]
 
             return await retry_on_failure(fetch, max_retries=2)
 
@@ -137,61 +201,114 @@ class DashboardGenerator:
     async def _generate_html(self, metrics_data: Dict[str, Any]) -> str:
         """Generate HTML dashboard from metrics"""
         async def generate():
-            # Simple HTML template - can be replaced with AI generation
+            # Enhanced HTML template with better styling and data display
             metrics_html = ""
             for metric in metrics_data.get("metrics", []):
                 metric_name = metric.get("metric", "Unknown")
-                metric_value = (
-                    metric.get("data", [{}])[0].get("result", "N/A")
-                )
+                metric_desc = metric.get("description", "")
+                
+                # Extract value from data
+                data = metric.get("data", [{}])
+                if data and isinstance(data, list) and len(data) > 0:
+                    first_result = data[0]
+                    if isinstance(first_result, dict):
+                        # Try to get the first numeric value or 'count' field
+                        metric_value = (
+                            first_result.get("count") or 
+                            first_result.get("total") or 
+                            first_result.get("result") or 
+                            list(first_result.values())[0] if first_result else "N/A"
+                        )
+                    else:
+                        metric_value = first_result
+                else:
+                    metric_value = "N/A"
+                
                 metrics_html += f'''
             <div class="metric">
                 <div class="metric-title">{metric_name}</div>
                 <div class="metric-value">{metric_value}</div>
+                <div class="metric-description">{metric_desc}</div>
             </div>'''
 
             html_template = f"""<!DOCTYPE html>
 <html>
 <head>
-    <title>Dashboard</title>
+    <title>Docy Search Dashboard</title>
     <style>
         body {{
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            background: #f5f5f5;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }}
+        .container {{
+            max-width: 1200px;
+            margin: 0 auto;
         }}
         .metric {{
-            background: white;
-            padding: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px;
             margin: 15px 0;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease;
+        }}
+        .metric:hover {{
+            transform: translateY(-5px);
         }}
         .metric-title {{
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 10px;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 8px;
+            font-size: 18px;
         }}
         .metric-value {{
-            font-size: 28px;
-            color: #007acc;
+            font-size: 36px;
+            color: #3182ce;
             font-weight: bold;
+            margin-bottom: 8px;
+        }}
+        .metric-description {{
+            color: #718096;
+            font-size: 14px;
+            line-height: 1.4;
         }}
         h1 {{
-            color: #333;
+            color: white;
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 40px;
+            font-size: 48px;
+            font-weight: 300;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }}
+        .metrics-grid {{
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }}
+        .footer {{
+            text-align: center;
+            color: rgba(255, 255, 255, 0.8);
+            margin-top: 40px;
+            font-size: 14px;
         }}
     </style>
 </head>
 <body>
-    <h1>📊 Database Dashboard</h1>
-    <div class="metrics">{metrics_html}
+    <div class="container">
+        <h1>📊 Docy Search Dashboard</h1>
+        <div class="metrics-grid">{metrics_html}
+        </div>
+        <div class="footer">
+            Generated on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | SQLite Database
+        </div>
     </div>
 </body>
 </html>"""
             return html_template.strip()
 
         return await retry_on_failure(generate)
-
-        return html_template
