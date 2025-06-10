@@ -1,39 +1,91 @@
 # docy_search/database/connection_manager.py
-"""MCP SQL Server connection management"""
-import os
-from typing import Optional, Dict, Any
-from mcp import ClientSession, StdioServerParameters
+"""MCP SQLite Server connection management - No credentials needed!"""
+import sqlite3
+from mcp import StdioServerParameters
 from mcp.client.stdio import stdio_client
-from dotenv import load_dotenv
+from pathlib import Path
 
-load_dotenv()
+class MCPSQLiteConnection:
+    """Manages MCP SQLite server connections - credential-free"""
 
-
-class MCPSQLConnection:
-    """Manages MCP SQL server connections"""
+    @staticmethod
+    def get_sqlite_db_path() -> str:
+        """Get SQLite database path"""
+        project_root = Path(__file__).parent.parent.parent
+        db_path = project_root / "docy_search.db"
+        return str(db_path)
 
     @staticmethod
     def get_server_params() -> StdioServerParameters:
-        """Get MCP SQL server parameters from environment with timeout"""
-        required_vars = ["DB_HOST", "DB_USER", "DB_PASSWORD", "DB_NAME"]
-        missing = [var for var in required_vars if not os.getenv(var)]
-        if missing:
-            raise ValueError(f"Missing database environment variables: {', '.join(missing)}")
-        
+        """Get MCP SQLite server parameters - no credentials required"""
+        db_path = MCPSQLiteConnection.get_sqlite_db_path()
+
         return StdioServerParameters(
             command="uvx",
             args=[
-                "mcp-sql-server",
-                "--db-host", os.getenv("DB_HOST"),
-                "--db-user", os.getenv("DB_USER"),
-                "--db-password", os.getenv("DB_PASSWORD"),
-                "--db-database", os.getenv("DB_NAME"),
-                "--timeout", "30"  # Add 30 second timeout
+                "mcp-server-sqlite",
+                "--db-path", db_path
             ],
         )
-    
+
     @staticmethod
     async def create_session():
         """Create MCP client session context manager"""
-        params = MCPSQLConnection.get_server_params()
+        params = MCPSQLiteConnection.get_server_params()
         return stdio_client(params)
+
+    @staticmethod
+    def initialize_database():
+        """Initialize SQLite database with required tables"""
+        db_path = MCPSQLiteConnection.get_sqlite_db_path()
+
+        with sqlite3.connect(db_path) as conn:
+            cursor = conn.cursor()
+
+            # Chat history table
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS chat_history (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id TEXT NOT NULL,
+                    prompt TEXT NOT NULL,
+                    response TEXT NOT NULL,
+                    model_used TEXT,
+                    tools_used TEXT,
+                    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    memory_id TEXT,
+                    cost REAL DEFAULT 0.0
+                )
+            """)
+
+            # Memory entries table
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS memory_entries (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    memory_id TEXT UNIQUE NOT NULL,
+                    user_id TEXT NOT NULL,
+                    content TEXT NOT NULL,
+                    metadata TEXT,
+                    status TEXT DEFAULT 'active',
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+
+            # Activity log table
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS activity_log (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id TEXT NOT NULL,
+                    activity_type TEXT NOT NULL,
+                    description TEXT,
+                    metadata TEXT,
+                    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+
+            conn.commit()
+            print(f"✅ SQLite database initialized at: {db_path}")
+
+
+# Backward compatibility alias
+MCPSQLConnection = MCPSQLiteConnection

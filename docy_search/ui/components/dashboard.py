@@ -24,7 +24,7 @@ class DashboardComponent:
         
         # Check database configuration
         if not self._check_db_config():
-            st.warning("⚠️ Database not configured. Please add database credentials to .env file.")
+            st.warning("⚠️ Database not available. SQLite initialization failed.")
             return
         
         # Generation section
@@ -40,10 +40,14 @@ class DashboardComponent:
             self._display_dashboard()
     
     def _check_db_config(self) -> bool:
-        """Check if database is configured"""
-        import os
-        required = ["DB_HOST", "DB_USER", "DB_PASSWORD", "DB_NAME"]
-        return all(os.getenv(var) for var in required)
+        """Check if SQLite database is available"""
+        try:
+            from docy_search.database.db_manager import get_db_manager
+            # Try to initialize database manager
+            db = get_db_manager()
+            return True
+        except Exception:
+            return False
     
     def _generate_dashboard(self):
         """Generate dashboard using DashboardGenerator"""

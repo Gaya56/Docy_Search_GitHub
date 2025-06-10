@@ -36,6 +36,17 @@ from docy_search.app import (
     memory_manager
 )
 
+# Import database (optional - won't break if it fails)
+try:
+    from docy_search.database.db_manager import get_db_manager
+    from docy_search.database.connection_manager import MCPSQLiteConnection
+    DATABASE_AVAILABLE = True
+    # Initialize database on import
+    MCPSQLiteConnection.initialize_database()
+except Exception as e:
+    print(f"Database not available: {e}")
+    DATABASE_AVAILABLE = False
+
 # Load environment variables
 load_dotenv()
 
@@ -140,7 +151,28 @@ def display_configuration_banner():
         
         current_model = model_names.get(st.session_state.selected_ai_model, "Unknown")
         
-        st.info(f"🔧 **Active Configuration:** {selected_tools_count}/{total_tools} tools enabled | 🤖 Model: {current_model}")
+        # Add database status to banner
+        db_status = "🗄️ Database: Active" if DATABASE_AVAILABLE else "🗄️ Database: Disabled"
+        
+        st.info(f"🔧 **Active Configuration:** {selected_tools_count}/{total_tools} tools enabled | 🤖 Model: {current_model} | {db_status}")
+
+
+def log_chat_to_database(prompt: str, response: str, model_used: str = None,
+                         tools_used: list = None, memory_id: str = None):
+    """Log chat interaction to database if available"""
+    if DATABASE_AVAILABLE:
+        try:
+            db = get_db_manager()
+            db.save_chat_interaction(
+                user_id=st.session_state.user_id,
+                prompt=prompt,
+                response=response,
+                model_used=model_used,
+                tools_used=tools_used,
+                memory_id=memory_id
+            )
+        except Exception as e:
+            print(f"Database logging failed: {e}")
 
 def display_footer():
     """Display footer"""
@@ -204,6 +236,15 @@ def main():
         prompt, response = result
         memory_saved, memory_id = memory_component.save_memory(prompt, response)
         chat.add_assistant_message(response, memory_saved, memory_id)
+        
+        # Log to database if available
+        log_chat_to_database(
+            prompt=prompt,
+            response=response,
+            model_used=st.session_state.selected_ai_model,
+            tools_used=[k for k, v in st.session_state.selected_tools.items() if v] if 'selected_tools' in st.session_state else [],
+            memory_id=memory_id
+        )
     
     with tab2:
         # Dashboard interface
