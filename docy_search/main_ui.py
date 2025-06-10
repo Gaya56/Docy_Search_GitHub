@@ -199,10 +199,11 @@ def main():
         return st.session_state[agent_key]
     
     chat = ChatComponent(get_cached_agent)
-    result = chat.render()        if result:
-            prompt, response = result
-            memory_saved, memory_id = memory_component.save_memory(prompt, response)
-            chat.add_assistant_message(response, memory_saved, memory_id)
+    result = chat.render()
+    if result:
+        prompt, response = result
+        memory_saved, memory_id = memory_component.save_memory(prompt, response)
+        chat.add_assistant_message(response, memory_saved, memory_id)
     
     with tab2:
         # Dashboard interface
