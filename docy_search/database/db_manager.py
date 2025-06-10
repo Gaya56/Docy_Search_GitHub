@@ -6,7 +6,7 @@ No credentials, no external dependencies, just works!
 
 import sqlite3
 import json
-from typing import Dict, List, Optional, Any, Union
+from typing import Dict, List, Optional, Any
 from pathlib import Path
 
 
@@ -66,10 +66,9 @@ class DatabaseManager:
 
             conn.commit()
 
-    def save_chat_interaction(self, user_id: str, prompt: str, response: str,
-                              model_used: Optional[str] = None, 
+    def save_chat_interaction(self, user_id: str, prompt: str, response: str,                              model_used: Optional[str] = None,
                               tools_used: Optional[List[str]] = None,
-                              memory_id: Optional[str] = None, 
+                              memory_id: Optional[str] = None,
                               cost: float = 0.0) -> int:
         """Save chat interaction to database"""
         with sqlite3.connect(self.db_path) as conn:
@@ -84,6 +83,16 @@ class DatabaseManager:
                 memory_id, cost
             ))
             return cursor.lastrowid or 0
+
+    def save_chat(self, user_id: str, prompt: str, response: str,
+                  model_used: Optional[str] = None,
+                  tools_used: Optional[List[str]] = None,
+                  memory_id: Optional[str] = None,
+                  cost: float = 0.0) -> int:
+        """Alias for save_chat_interaction for compatibility"""
+        return self.save_chat_interaction(
+            user_id, prompt, response, model_used, tools_used, memory_id, cost
+        )
 
     def get_chat_history(self, user_id: str, limit: int = 50) -> List[Dict]:
         """Get chat history for user"""
