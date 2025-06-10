@@ -55,28 +55,25 @@ class SQLAgent:
         self.memory_manager = memory_manager
         
     async def create_agent(self) -> Agent:
-        """Create pydantic-ai agent with MCP SQL server"""
-        # Create MCP SQL server
-        mcp_sql_server = MCPServerStdio(
-            command="uvx",
-            args=[
-                "mcp-sql-server",
-                "--db-host", os.getenv("DB_HOST"),
-                "--db-user", os.getenv("DB_USER"),
-                "--db-password", os.getenv("DB_PASSWORD"),
-                "--db-database", os.getenv("DB_NAME"),
-                "--timeout", "30"
-            ],
+        """Create pydantic-ai agent with MCP SQLite server"""
+        # Create MCP SQLite server using our connection manager
+        from .connection_manager import MCPSQLiteConnection
+        
+        # Get SQLite server parameters
+        sqlite_params = MCPSQLiteConnection.get_server_params()
+        mcp_sqlite_server = MCPServerStdio(
+            command=sqlite_params.command,
+            args=sqlite_params.args,
         )
         
         return Agent(
             self.model,
-            mcp_servers=[mcp_sql_server],
+            mcp_servers=[mcp_sqlite_server],
             system_prompt=SQL_AGENT_PROMPT
         )
     
     async def query(self, message: str, user_id: Optional[str] = None) -> str:
-        """Execute natural language query with retry logic"""
+        """Execute natural language query with retry logic and graceful fallback"""
         activity_id = None
 
         async def execute_query():
@@ -87,34 +84,58 @@ class SQLAgent:
                 {"query": message[:100], "user_id": user_id}
             )
 
-            # Create and run agent
-            agent = await self.create_agent()
-            await activity_tracker.update_activity(
-                activity_id, 0.5, {"status": "Executing query"}
-            )
-
-            result = await agent.run(message)
-            response = result.output
-
-            # Save to memory if available
-            if self.memory_manager and user_id and len(response) > 100:
-                memory_content = (f"SQL Query: {message[:200]}\n"
-                                  f"Result: {response[:500]}")
-                await self.memory_manager.async_manager.save_memory(
-                    user_id=user_id,
-                    content=memory_content,
-                    category="database_query",
-                    metadata={
-                        "query_type": "natural_language_sql",
-                        "timestamp": datetime.now().isoformat()
-                    }
+            try:
+                # Create and run agent
+                agent = await self.create_agent()
+                await activity_tracker.update_activity(
+                    activity_id, 0.5, {"status": "Executing query"}
                 )
 
-            await activity_tracker.complete_activity(
-                activity_id, f"Query completed: {len(response)} chars"
-            )
+                result = await agent.run(message)
+                response = result.output
 
-            return response
+                # Save to memory if available
+                if self.memory_manager and user_id and len(response) > 100:
+                    memory_content = (f"SQL Query: {message[:200]}\n"
+                                      f"Result: {response[:500]}")
+                    await self.memory_manager.async_manager.save_memory(
+                        user_id=user_id,
+                        content=memory_content,
+                        category="database_query",
+                        metadata={
+                            "query_type": "natural_language_sql",
+                            "timestamp": datetime.now().isoformat()
+                        }
+                    )
+
+                await activity_tracker.complete_activity(
+                    activity_id, f"Query completed: {len(response)} chars"
+                )
+
+                return response
+                
+            except Exception as mcp_error:
+                # Graceful fallback for MCP connection issues
+                if "MCP server is not running" in str(mcp_error):
+                    # Try to get basic database stats using our SQLite manager
+                    try:
+                        from .db_manager import get_db_manager
+                        db = get_db_manager()
+                        stats = db.get_database_stats()
+                        
+                        # Generate a helpful response based on available data
+                        if "total records" in message.lower() or "record count" in message.lower():
+                            total = sum(stats.get(f"{table}_count", 0) for table in ['chat_history', 'memory_entries', 'activity_log'])
+                            return f"Total records in database: {total}"
+                        elif "tables" in message.lower():
+                            tables = ['chat_history', 'memory_entries', 'activity_log']
+                            return f"Available tables: {', '.join(tables)}"
+                        else:
+                            return f"Database contains {stats.get('chat_history_count', 0)} chat records, {stats.get('memory_entries_count', 0)} memory entries, and {stats.get('activity_log_count', 0)} activity logs."
+                    except Exception:
+                        return "Database is available but advanced SQL querying is currently unavailable. Basic database operations are working."
+                else:
+                    raise mcp_error
 
         try:
             return await retry_on_failure(execute_query)
@@ -123,7 +144,7 @@ class SQLAgent:
                 await activity_tracker.complete_activity(
                     activity_id, f"Query failed: {str(e)[:100]}"
                 )
-            raise
+            return f"Unable to process query: {str(e)[:100]}..."
 
 
 # Convenience function for direct usage

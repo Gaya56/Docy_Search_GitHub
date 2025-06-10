@@ -5,6 +5,7 @@ from mcp import StdioServerParameters
 from mcp.client.stdio import stdio_client
 from pathlib import Path
 
+
 class MCPSQLiteConnection:
     """Manages MCP SQLite server connections - credential-free"""
 
