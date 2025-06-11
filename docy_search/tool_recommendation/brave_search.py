@@ -6,7 +6,7 @@ import json
 
 # Import activity tracking with graceful fallback
 try:
-    from docy_search.activity_tracker import activity_tracker
+    from .activity_tracker import activity_tracker
     TRACKING_AVAILABLE = True
 except ImportError:
     TRACKING_AVAILABLE = False
