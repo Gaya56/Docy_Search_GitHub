@@ -57,16 +57,21 @@ class ChatComponent:
                 return prompt, response
     
     async def _get_response(self, prompt: str, context: str) -> str:
-        """Get agent response"""
+        """Get agent response with proper MCP server context"""
         try:
             agent = self.get_agent()
             full_prompt = f"{context}\nCurrent message: {prompt}"
             
-            # Run agent directly without nested MCP server context
-            result = await agent.run(full_prompt)
-            return result.output
+            # Run agent within MCP server context
+            async with agent.run_mcp_servers():
+                result = await agent.run(full_prompt)
+                return result.output
         except Exception as e:
-            return f"I apologize, but I encountered an error: {str(e)}. Please try again."
+            error_msg = str(e)
+            if "MCP server is not running" in error_msg:
+                return (f"I apologize, but there was an issue connecting to the tools. "
+                       f"The system is initializing. Please try your question again in a moment.")
+            return f"I apologize, but I encountered an error: {error_msg}. Please try again."
     
     def _build_context(self) -> str:
         """Build conversation context"""
