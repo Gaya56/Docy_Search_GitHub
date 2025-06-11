@@ -17,7 +17,7 @@ from dotenv import load_dotenv
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 # Import activity tracking and cost tracking
-from docy_search.activity_tracker import activity_tracker
+from docy_search.tool_recommendation.activity_tracker import activity_tracker
 from docy_search.memory.cost_tracker import CostTracker
 
 # Import UI components

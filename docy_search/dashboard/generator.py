@@ -3,7 +3,7 @@ import asyncio
 from typing import Any, Dict, Optional
 from datetime import datetime
 
-from docy_search.activity_tracker import activity_tracker
+from docy_search.tool_recommendation.activity_tracker import activity_tracker
 from .validators import validate_schema_analysis
 
 

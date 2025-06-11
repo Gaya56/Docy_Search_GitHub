@@ -7,7 +7,7 @@ from datetime import datetime
 from typing import Dict, Any, Optional
 
 # Import required modules
-from docy_search.activity_tracker import activity_tracker
+from docy_search.tool_recommendation.activity_tracker import activity_tracker
 from docy_search.memory.cost_tracker import CostTracker
 
 
