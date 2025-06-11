@@ -1,0 +1,3 @@
+✅ Embeddings enabled (OpenAI)
+💾 Memory system initialized successfully!
+SUCCESS: brave_search imported

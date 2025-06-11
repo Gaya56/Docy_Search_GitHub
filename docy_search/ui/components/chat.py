@@ -62,9 +62,10 @@ class ChatComponent:
             agent = self.get_agent()
             full_prompt = f"{context}\nCurrent message: {prompt}"
             
-            # Run agent directly without nested MCP server context
-            result = await agent.run(full_prompt)
-            return result.output
+            # Run agent within MCP server context
+            async with agent.run_mcp_servers():
+                result = await agent.run(full_prompt)
+                return result.output
         except Exception as e:
             return f"I apologize, but I encountered an error: {str(e)}. Please try again."
     
