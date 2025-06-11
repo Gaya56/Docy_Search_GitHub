@@ -3,21 +3,26 @@ Streamlit UI for Docy_Search with Memory System
 Chat Tab Implementation with Live Activity Tracking
 """
 
-import streamlit as st
-import asyncio
 import os
 import sys
 import uuid
-import random
-import json
-from datetime import datetime
+from typing import Optional, List
+
+import streamlit as st
 from dotenv import load_dotenv
 
 # Add current directory to path for imports
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-# Import activity tracking and cost tracking
-from docy_search.tool_recommendation.activity_tracker import activity_tracker
+# Import from existing app.py
+from docy_search.app import (
+    load_project_context,
+    create_agent_with_context,
+    model,
+    memory_manager
+)
+
+# Import cost tracking
 from docy_search.memory.cost_tracker import CostTracker
 
 # Import UI components
@@ -26,15 +31,6 @@ from docy_search.ui.components.chat import ChatComponent
 from docy_search.ui.components.memory import MemoryComponent
 from docy_search.ui.components.dashboard import DashboardComponent
 from docy_search.ui.utils.styles import inject_all_styles
-
-# Import from existing app.py
-from docy_search.app import (
-    load_project_context, 
-    create_agent_with_context,
-    get_model_from_name,
-    model,
-    memory_manager
-)
 
 # Import database (optional - won't break if it fails)
 try:
@@ -157,8 +153,13 @@ def display_configuration_banner():
         st.info(f"🔧 **Active Configuration:** {selected_tools_count}/{total_tools} tools enabled | 🤖 Model: {current_model} | {db_status}")
 
 
-def log_chat_to_database(prompt: str, response: str, model_used: str = None,
-                         tools_used: list = None, memory_id: str = None):
+def log_chat_to_database(
+    prompt: str,
+    response: str,
+    model_used: Optional[str] = None,
+    tools_used: Optional[List[str]] = None,
+    memory_id: Optional[str] = None
+):
     """Log chat interaction to database if available"""
     if DATABASE_AVAILABLE:
         try:
@@ -243,7 +244,7 @@ def main():
             response=response,
             model_used=st.session_state.selected_ai_model,
             tools_used=[k for k, v in st.session_state.selected_tools.items() if v] if 'selected_tools' in st.session_state else [],
-            memory_id=memory_id
+            memory_id=str(memory_id) if memory_id is not None else None
         )
     
     with tab2:
