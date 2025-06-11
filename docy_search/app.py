@@ -68,7 +68,7 @@ TOOL_SERVER_MAP = {
     # "github_search": lambda: MCPServerStdio('python', ['-m', 'docy_search.tool_recommendation.github_mcp_server']),
     "python_tools": lambda: MCPServerStdio('python', ['-m', 'docy_search.tool_recommendation.python_tools'], tool_prefix="py"),
     "tool_recommend": lambda: MCPServerStdio('python', ['-m', 'docy_search.tool_recommendation.mcp_server'], tool_prefix="rec"),
-    "data_viz": lambda: MCPServerStdio('python', ['-m', 'docy_search.python_tools'], tool_prefix="viz")  # Same server, different prefix
+    "data_viz": lambda: MCPServerStdio('python', ['-m', 'docy_search.tool_recommendation.python_tools'], tool_prefix="viz")  # Same server, different prefix
 }
 
 # Define the Agent with filtered MCP servers
