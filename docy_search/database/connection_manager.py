@@ -1,6 +1,5 @@
 # docy_search/database/connection_manager.py
 """MCP SQLite Server connection management - No credentials needed!"""
-import sqlite3
 from mcp import StdioServerParameters
 from mcp.client.stdio import stdio_client
 from pathlib import Path
@@ -37,55 +36,10 @@ class MCPSQLiteConnection:
 
     @staticmethod
     def initialize_database():
-        """Initialize SQLite database with required tables"""
-        db_path = MCPSQLiteConnection.get_sqlite_db_path()
-
-        with sqlite3.connect(db_path) as conn:
-            cursor = conn.cursor()
-
-            # Chat history table
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS chat_history (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    user_id TEXT NOT NULL,
-                    prompt TEXT NOT NULL,
-                    response TEXT NOT NULL,
-                    model_used TEXT,
-                    tools_used TEXT,
-                    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-                    memory_id TEXT,
-                    cost REAL DEFAULT 0.0
-                )
-            """)
-
-            # Memory entries table
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS memory_entries (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    memory_id TEXT UNIQUE NOT NULL,
-                    user_id TEXT NOT NULL,
-                    content TEXT NOT NULL,
-                    metadata TEXT,
-                    status TEXT DEFAULT 'active',
-                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-                )
-            """)
-
-            # Activity log table
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS activity_log (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    user_id TEXT NOT NULL,
-                    activity_type TEXT NOT NULL,
-                    description TEXT,
-                    metadata TEXT,
-                    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-                )
-            """)
-
-            conn.commit()
-            print(f"✅ SQLite database initialized at: {db_path}")
+        """Initialize SQLite database - delegates to DatabaseManager"""
+        from .db_manager import get_db_manager
+        db_manager = get_db_manager()
+        print(f"✅ SQLite database initialized at: {db_manager.db_path}")
 
 
 # Backward compatibility alias

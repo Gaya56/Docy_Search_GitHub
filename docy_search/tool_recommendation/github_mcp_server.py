@@ -4,7 +4,7 @@ GitHub MCP Server for repository discovery and code analysis.
 Provides tools to search GitHub repositories, get file contents, and analyze project structures.
 """
 
-from mcp.server.fastmcp import FastMCP
+from fastmcp import FastMCP
 from dotenv import load_dotenv
 import os
 import json
@@ -15,7 +15,7 @@ from typing import Dict, List, Optional, Any
 
 # Import activity tracking with graceful fallback
 try:
-    from docy_search.activity_tracker import activity_tracker
+    from .activity_tracker import activity_tracker
     TRACKING_AVAILABLE = True
 except ImportError:
     TRACKING_AVAILABLE = False

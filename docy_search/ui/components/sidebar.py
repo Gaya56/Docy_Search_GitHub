@@ -1,14 +1,9 @@
 import streamlit as st
-import asyncio
 import random
-import os
-import time
-from datetime import datetime
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 
 # Import required modules
-from docy_search.activity_tracker import activity_tracker
-from docy_search.memory.cost_tracker import CostTracker
+from docy_search.tool_recommendation.activity_tracker import activity_tracker
 
 
 class SidebarComponent:
@@ -397,11 +392,11 @@ class SidebarComponent:
                 if st.button("Test Connection", key="test_db"):
                     with st.spinner("Testing database connection..."):
                         try:
-                            from docy_search.database.sql_agent import run_sql_query
-                            result = asyncio.run(run_sql_query("Show me the database schema"))
+                            from docy_search.database.db_manager import get_db_manager
+                            db = get_db_manager()
+                            stats = db.get_database_stats()
                             st.success("✅ Database connected!")
-                            display_result = result[:200] + "..." if len(result) > 200 else result
-                            st.text(display_result)
+                            st.json(stats)
                         except Exception as e:
                             st.error(f"❌ Connection failed: {str(e)}")
         

@@ -1,11 +1,9 @@
 """Dashboard generation orchestration"""
 import asyncio
-import json
 from typing import Any, Dict, Optional
 from datetime import datetime
 
-from docy_search.activity_tracker import activity_tracker
-from docy_search.database import SQLAgent
+from docy_search.tool_recommendation.activity_tracker import activity_tracker
 from .validators import validate_schema_analysis
 
 
@@ -28,7 +26,6 @@ class DashboardGenerator:
 
     def __init__(self, model):
         self.model = model
-        self.sql_agent = SQLAgent(model)
 
     async def generate_full_dashboard(
         self, user_id: Optional[str] = None
@@ -163,19 +160,8 @@ class DashboardGenerator:
                             return [{"result": "No data"}]
                             
                 except Exception as e:
-                    # Fallback to SQL agent if direct query fails
-                    try:
-                        data = await self.sql_agent.query(
-                            f"Execute this SQL: {metric['sql']}"
-                        )
-                        # Parse result as JSON if possible
-                        try:
-                            parsed_data = json.loads(data)
-                        except Exception:
-                            parsed_data = [{"result": data}]
-                        return parsed_data
-                    except Exception:
-                        return [{"result": f"Error: {str(e)}"}]
+                    # Return error result if direct query fails
+                    return [{"result": f"Error: {str(e)}"}]
 
             return await retry_on_failure(fetch, max_retries=2)
 

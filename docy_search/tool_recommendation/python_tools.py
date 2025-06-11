@@ -1,4 +1,4 @@
-from mcp.server.fastmcp import FastMCP
+from fastmcp import FastMCP
 import io
 import base64
 import matplotlib.pyplot as plt
@@ -8,7 +8,7 @@ import traceback
 
 # Import activity tracking with graceful fallback
 try:
-    from docy_search.activity_tracker import activity_tracker
+    from .activity_tracker import activity_tracker
     TRACKING_AVAILABLE = True
 except ImportError:
     TRACKING_AVAILABLE = False

@@ -1,4 +1,4 @@
-from mcp.server.fastmcp import FastMCP
+from fastmcp import FastMCP
 import os
 import json
 import requests
@@ -9,9 +9,7 @@ import re
 
 # Import activity tracking with graceful fallback
 try:
-    import sys
-    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    from docy_search.activity_tracker import activity_tracker
+    from .activity_tracker import activity_tracker
     TRACKING_AVAILABLE = True
 except ImportError:
     TRACKING_AVAILABLE = False

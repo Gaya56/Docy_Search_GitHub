@@ -8,4 +8,9 @@ from .chat import ChatComponent
 from .memory import MemoryComponent
 from .dashboard import DashboardComponent
 
-__all__ = ['SidebarComponent', 'ChatComponent', 'MemoryComponent', 'DashboardComponent']
+__all__ = [
+    'SidebarComponent',
+    'ChatComponent',
+    'MemoryComponent',
+    'DashboardComponent'
+]

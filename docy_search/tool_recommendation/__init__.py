@@ -1,8 +1,9 @@
 """
-Modular, intelligent tool recommendation system.
+Tool recommendation system with integrated MCP tools.
 
 This package provides AI-powered tool discovery, analysis, and installation
 guidance for developers, cybersecurity professionals, and CTF participants.
+It includes web search, GitHub integration, Python tools, and activity tracking.
 """
 
 from .models import (
@@ -15,28 +16,22 @@ from .models import (
     InstallationGuide
 )
 
-from .search_engine import BraveSearchEngine, SearchResultEnhancer
-from .analyzer import GeminiToolAnalyzer
-from .installer import InstallationGuideGenerator
-from .core import ToolRecommendationSystem
+# Activity tracker is available for import by other tools
+from .activity_tracker import ActivityTracker, activity_tracker
 
 __version__ = "1.0.0"
 __author__ = "AI Tool Recommendation System"
 
 __all__ = [
-    # Models
+    # Data models
     "ToolRecommendation",
-    "SearchQuery", 
+    "SearchQuery",
     "RecommendationResponse",
     "ToolCategory",
     "Platform",
     "InstallationMethod",
     "InstallationGuide",
-    
-    # Core components
-    "BraveSearchEngine",
-    "SearchResultEnhancer", 
-    "GeminiToolAnalyzer",
-    "InstallationGuideGenerator",
-    "ToolRecommendationSystem"
+    # Activity tracking
+    "ActivityTracker",
+    "activity_tracker"
 ]
