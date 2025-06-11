@@ -24,7 +24,7 @@ async def retry_on_failure(func, max_retries=3, delay=2):
 class DashboardGenerator:
     """Orchestrates dashboard generation from database"""
 
-    def __init__(self, model):
+    def __init__(self, model=None):
         self.model = model
 
     async def generate_full_dashboard(

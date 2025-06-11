@@ -86,8 +86,6 @@
 
 **generator.py** - Dashboard generation logic creating visualizations and reports from application data. Implements chart generation, data aggregation, and presentation formatting. Provides comprehensive analytics dashboard capabilities.
 
-**prompts.py** - Dashboard-specific prompts and templates for AI-generated content and analysis. Provides structured prompts for creating insightful dashboard content. Enhances the dashboard with AI-generated insights.
-
 **validators.py** - Validation logic for dashboard data and configuration ensuring data integrity. Provides input validation and error handling for dashboard operations. Maintains data quality and consistency in dashboard generation.
 
 ## Tool Recommendation Directory
