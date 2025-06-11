@@ -63,12 +63,12 @@ except Exception as e:
 
 # Tool Server Mapping - Maps tool keys to MCP server instances
 TOOL_SERVER_MAP = {
-    "web_search": lambda: MCPServerStdio('python', ['-m', 'docy_search.tool_recommendation.brave_search'], tool_prefix="web"),
+    "web_search": lambda: MCPServerStdio('uv', ['run', 'python', '-m', 'docy_search.tool_recommendation.brave_search'], tool_prefix="web"),
     # Temporarily disabled due to aiohttp dependency conflicts
-    # "github_search": lambda: MCPServerStdio('python', ['-m', 'docy_search.tool_recommendation.github_mcp_server']),
-    "python_tools": lambda: MCPServerStdio('python', ['-m', 'docy_search.tool_recommendation.python_tools'], tool_prefix="py"),
-    "tool_recommend": lambda: MCPServerStdio('python', ['-m', 'docy_search.tool_recommendation.mcp_server'], tool_prefix="rec"),
-    "data_viz": lambda: MCPServerStdio('python', ['-m', 'docy_search.python_tools'], tool_prefix="viz")  # Same server, different prefix
+    # "github_search": lambda: MCPServerStdio('uv', ['run', 'python', '-m', 'docy_search.tool_recommendation.github_mcp_server']),
+    "python_tools": lambda: MCPServerStdio('uv', ['run', 'python', '-m', 'docy_search.tool_recommendation.python_tools'], tool_prefix="py"),
+    "tool_recommend": lambda: MCPServerStdio('uv', ['run', 'python', '-m', 'docy_search.tool_recommendation.mcp_server'], tool_prefix="rec"),
+    "data_viz": lambda: MCPServerStdio('uv', ['run', 'python', '-m', 'docy_search.tool_recommendation.python_tools'], tool_prefix="viz")  # Same server, different prefix
 }
 
 # Define the Agent with filtered MCP servers
