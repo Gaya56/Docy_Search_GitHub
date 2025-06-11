@@ -1,0 +1,145 @@
+## Root Directory Files
+
+**README.md** - Main project documentation describing Docy Search as an AI tool recommendation assistant with SQLite database integration. Features comprehensive setup instructions, quick start guide, and highlights the zero-configuration database approach. Serves as the primary entry point for users and developers.
+
+**pyproject.toml** - Python project configuration file defining dependencies, metadata, and build settings for the Docy Search package. Includes comprehensive dependency list with AI libraries (pydantic-ai, openai, anthropic), web frameworks (streamlit), and database tools (aiosqlite). Defines CLI entry points for both command-line and web interfaces.
+
+**requirements.txt** - Legacy pip requirements file listing all Python dependencies needed for the project. Contains duplicate entries and appears less maintained than pyproject.toml. Should likely be removed in favor of the more modern pyproject.toml approach.
+
+**LICENSE** - MIT License file granting open-source permissions for the software. Standard copyright notice attributed to "Gaya" as the original author. Provides legal framework for distribution and modification of the codebase.
+
+**project_context.md** - Project context document describing a custom "Sona" business website with photo upload and interactive design features. Appears to be unrelated to the current AI assistant functionality and may be outdated context. Contains technical requirements for a React/Vue frontend with Node.js/Python backend.
+
+**.gitignore** - Git ignore file specifying which files and directories should not be tracked by version control. Includes standard Python patterns, environment files, and project-specific exclusions. Helps maintain clean repository state.
+
+**.python-version** - Python version specification file, likely for pyenv or similar version management tools. Ensures consistent Python environment across different development setups. Simple configuration for reproducible builds.
+
+**uv.lock** - Lock file for the UV package manager containing exact dependency versions and hashes. Ensures reproducible builds and consistent environments across different machines. Modern Python dependency management approach.
+
+## Root Directories
+
+**config/** - Configuration management directory containing centralized settings using pydantic-settings. Provides environment variable handling and API key management for the entire application.
+
+**docy_search/** - Main application package containing all core functionality including UI components, memory management, and AI agent logic. Serves as the primary codebase with modular architecture for different features.
+
+**scripts/** - Utility scripts directory containing database exploration and maintenance tools. Provides command-line utilities for viewing chat history and database inspection.
+
+**data/** - Data storage directory (referenced in configuration) for SQLite database files and other persistent data. Likely contains the main application database and backup files.
+
+**.vscode/** - Visual Studio Code configuration directory containing editor-specific settings and preferences. Provides consistent development environment configuration for VS Code users.
+
+## Config Directory
+
+**__init__.py** - Package initialization file exporting the main `get_settings` function for configuration access. Provides clean API for accessing application settings throughout the codebase. Simple module interface for configuration management.
+
+**settings.py** - Comprehensive configuration management using pydantic-settings with environment variable support. Defines API keys, database settings, memory configuration, and other application parameters. Provides validation and default values for all configuration options.
+
+## Docy Search Package
+
+**__init__.py** - Package initialization file defining version, author, and main exports for the Docy Search system. Provides convenient imports for core functionality like agent creation and memory management. Serves as the public API entry point for the package.
+
+**app.py** - Core application logic containing AI agent creation, model selection, and chat functionality. Integrates memory management, project context loading, and multi-model support (OpenAI, Anthropic, Google). Provides both CLI and programmatic interfaces for the AI assistant.
+
+**main_ui.py** - Streamlit web interface providing comprehensive UI for chat, memory management, and dashboard features. Integrates all application components with activity tracking and cost monitoring. Main entry point for the web-based user interface.
+
+**activity_tracker.py** - Activity tracking system for monitoring user interactions and system performance. Likely provides analytics and usage monitoring capabilities. Supports the application's observability requirements.
+
+**brave_search.py** - Brave Search API integration for web search capabilities within the AI assistant. Provides external search functionality to enhance AI responses with current information. Extends the AI agent's knowledge beyond training data.
+
+**github_mcp_server.py** - GitHub MCP (Model Context Protocol) server implementation for GitHub API integration. Enables the AI assistant to interact with GitHub repositories and services. Provides version control and repository management capabilities.
+
+**python_tools.py** - Python-specific tools and utilities for code analysis and development assistance. Provides programming language support within the AI assistant framework. Enhances the assistant's capabilities for Python development tasks.
+
+## Database Directory
+
+**docy_search/database/** - Database management directory containing SQLite integration, connection management, and SQL agents. Provides persistent storage capabilities with MCP server integration for database operations.
+
+**__init__.py** - Database package initialization file defining exports for database functionality. Provides clean API for database operations throughout the application. Simple module interface for database access.
+
+**connection_manager.py** - Database connection management with SQLite integration and MCP server capabilities. Handles database initialization, connection pooling, and query execution. Provides robust database connectivity for the application.
+
+**db_manager.py** - High-level database manager providing abstraction over database operations. Implements CRUD operations and database schema management. Offers simplified interface for database interactions.
+
+**sql_agent.py** - SQL agent implementation for natural language to SQL query translation. Enables users to interact with databases using natural language queries. Provides AI-powered database query capabilities.
+
+**sql_agent_simple.py** - Simplified version of the SQL agent with basic query functionality. Provides streamlined database interaction for common use cases. Offers lightweight alternative to the full SQL agent.
+
+## Memory Directory
+
+**docy_search/memory/** - Memory management directory implementing semantic search, cost tracking, and persistent memory storage. Provides advanced memory capabilities for the AI assistant with SQLite backend.
+
+**README.md** - Documentation for the memory system explaining architecture, features, and usage patterns. Provides detailed information about semantic search and memory management capabilities. Serves as developer guide for memory functionality.
+
+**__init__.py** - Memory package initialization file exporting core memory management functionality. Provides clean API for memory operations throughout the application. Simple module interface for memory access.
+
+**cost_tracker.py** - Cost tracking system for monitoring API usage and associated costs across different AI models. Provides budget management and usage analytics for the AI assistant. Helps users understand and control their AI usage expenses.
+
+**memory_manager.py** - Core memory management system implementing semantic search with OpenAI embeddings. Provides persistent storage, retrieval, and organization of conversation history and context. Central component for the AI's memory capabilities.
+
+**sqlite_memory.py** - SQLite-based memory storage implementation with semantic search capabilities. Provides efficient storage and retrieval of embeddings and memory data. Handles the persistence layer for the memory system.
+
+## Dashboard Directory
+
+**docy_search/dashboard/** - Dashboard generation directory providing analytics and visualization capabilities for the AI assistant. Creates dynamic dashboards and reports for user activity and system performance.
+
+**__init__.py** - Dashboard package initialization file defining exports for dashboard functionality. Provides clean API for dashboard operations throughout the application. Simple module interface for dashboard access.
+
+**generator.py** - Dashboard generation logic creating visualizations and reports from application data. Implements chart generation, data aggregation, and presentation formatting. Provides comprehensive analytics dashboard capabilities.
+
+**prompts.py** - Dashboard-specific prompts and templates for AI-generated content and analysis. Provides structured prompts for creating insightful dashboard content. Enhances the dashboard with AI-generated insights.
+
+**validators.py** - Validation logic for dashboard data and configuration ensuring data integrity. Provides input validation and error handling for dashboard operations. Maintains data quality and consistency in dashboard generation.
+
+## Tool Recommendation Directory
+
+**docy_search/tool_recommendation/** - Tool recommendation system providing intelligent suggestions for development tools and technologies. Implements analysis, search, and recommendation algorithms for software tools.
+
+**__init__.py** - Tool recommendation package initialization file defining exports for recommendation functionality. Provides clean API for tool recommendation operations throughout the application. Simple module interface for recommendation access.
+
+**analyzer.py** - Tool analysis engine examining software requirements and providing compatibility assessments. Implements logic for evaluating tool fitness and generating recommendations. Core component for intelligent tool suggestion.
+
+**core.py** - Core recommendation logic implementing algorithms for tool selection and ranking. Provides the main recommendation engine with scoring and filtering capabilities. Central component coordinating the recommendation process.
+
+**installer.py** - Tool installation automation providing setup and configuration assistance. Implements installation workflows and dependency management for recommended tools. Streamlines the tool adoption process.
+
+**mcp_server.py** - MCP server implementation for tool recommendation services. Provides standardized interface for tool recommendation functionality. Enables integration with other MCP-compatible systems.
+
+**models.py** - Data models and schemas for tool recommendation system using Pydantic. Defines tool metadata, recommendation structures, and validation logic. Provides type safety and data consistency.
+
+**search_engine.py** - Search engine for finding and indexing development tools and technologies. Implements search algorithms and tool discovery capabilities. Provides comprehensive tool database and search functionality.
+
+## UI Directory
+
+**docy_search/ui/** - User interface directory containing Streamlit components and styling for the web application. Provides modular UI components with consistent styling and responsive design.
+
+**__init__.py** - UI package initialization file defining exports for user interface functionality. Provides clean API for UI operations throughout the application. Simple module interface for UI access.
+
+**docy_search/ui/components/** - UI components directory containing reusable Streamlit components for different application features. Implements modular design with separate components for chat, memory, dashboard, and sidebar functionality.
+
+**__init__.py** - UI components package initialization file defining exports for component functionality. Provides clean API for component operations throughout the application. Simple module interface for component access.
+
+**chat.py** - Chat interface component implementing conversation UI with message history and real-time updates. Provides interactive chat functionality with AI agent integration. Core component for user interaction.
+
+**dashboard.py** - Dashboard UI component providing analytics visualization and system metrics display. Implements interactive charts and data presentation using Streamlit and Plotly. Offers comprehensive system monitoring interface.
+
+**memory.py** - Memory management UI component allowing users to view and manage conversation history. Provides semantic search interface and memory analytics. Enables users to explore their AI interaction history.
+
+**sidebar.py** - Sidebar navigation component providing access to different application features and settings. Implements consistent navigation and configuration options. Offers centralized access to application functionality.
+
+**tabs.py** - Tab navigation component organizing different application sections and features. Provides clean interface for switching between chat, memory, and dashboard views. Implements consistent tab-based navigation.
+
+**docy_search/ui/utils/** - UI utilities directory containing styling and helper functions for the user interface. Provides consistent styling and common UI functionality across components.
+
+**__init__.py** - UI utilities package initialization file defining exports for utility functionality. Provides clean API for utility operations throughout the application. Simple module interface for utility access.
+
+**styles.py** - CSS styling and theme management for the Streamlit application. Provides consistent visual design and responsive styling across all UI components. Implements the application's visual identity and user experience.
+
+## Scripts Directory
+
+**scripts/** - Utility scripts directory providing command-line tools for database management and system maintenance. Contains standalone scripts for administration and debugging tasks.
+
+**database_explorer.py** - Interactive database exploration tool providing command-line interface for database inspection. Enables users to browse tables, run queries, and examine database structure. Useful for debugging and data analysis.
+
+**view_chats.py** - Chat history viewing utility displaying stored conversations and message history. Provides command-line access to conversation data for analysis and review. Helpful for understanding usage patterns and debugging.
+
+**db_quick.py** - Quick database utility script providing fast access to common database operations. Implements shortcuts for frequent database tasks and maintenance operations. Streamlines database administration workflows.
