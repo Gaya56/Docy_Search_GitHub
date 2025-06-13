@@ -2,25 +2,35 @@
 
 ## Overview
 
-Add Perplexity AI web search capabilities to the Docy Search tool recommendation system via MCP (Model Context Protocol) server integration.
+Add Perplexity AI web search capabilities to the Docy Search tool recommendation system by cloning an existing MCP Perplexity server repository and integrating it into our tool recommendation system.
 
-## Implementation Location
+## Implementation Approach
 
+**Method**: Clone existing MCP Perplexity repository and integrate into our system
 **Target Directory**: `/workspaces/Docy_Search_GitHub/docy_search/tool_recommendation/`
 
-## Requirements
+## Repository Integration Plan
 
-### Core Functionality
+## Repository Integration Plan
 
-- [ ] **Create `perplexity_search.py`** - Main MCP server implementation
-- [ ] **Integrate Perplexity API** - Web search and AI-powered responses
-- [ ] **Add to MCP server registry** - Register with existing MCP infrastructure
-- [ ] **Implement search result processing** - Parse and format search results
-- [ ] **Add cost tracking** - Monitor API usage and costs
+### Step 1: Repository Selection & Cloning
 
-### Technical Specifications
+- [ ] **Identify suitable MCP Perplexity repository** from GitHub/community sources
+- [ ] **Clone repository** to temporary location for evaluation
+- [ ] **Review code quality** and compatibility with our system
+- [ ] **Check license compatibility** for integration
+- [ ] **Evaluate dependencies** and potential conflicts
 
-#### File Structure
+### Step 2: Integration Process  
+
+- [ ] **Clone repository** into `/workspaces/Docy_Search_GitHub/docy_search/tool_recommendation/mcp_perplexity/`
+- [ ] **Adapt import structure** to match our project layout
+- [ ] **Update configuration** to use our settings system
+- [ ] **Modify MCP server registration** to integrate with existing infrastructure
+- [ ] **Add to tool recommendation registry** in our main system
+
+### Step 3: Directory Structure After Integration
+
 ```text
 docy_search/tool_recommendation/
 ├── __init__.py
@@ -29,11 +39,37 @@ docy_search/tool_recommendation/
 ├── github_mcp_server.py
 ├── mcp_server.py
 ├── models.py
-├── perplexity_search.py    # <- NEW FILE
-└── python_tools.py
+├── python_tools.py
+└── mcp_perplexity/              # <- CLONED REPOSITORY
+    ├── __init__.py
+    ├── server.py
+    ├── client.py
+    ├── config.py
+    ├── models.py
+    └── utils.py
 ```
 
-#### API Integration
+## Integration Requirements
+
+## Integration Requirements
+
+### Adaptation Tasks
+
+- [ ] **Update import paths** to match our project structure
+- [ ] **Integrate with existing configuration** system (`config/settings.py`)
+- [ ] **Adapt MCP server registration** to work with our `mcp_server.py`
+- [ ] **Update dependencies** in `requirements.txt` and `pyproject.toml`
+- [ ] **Modify error handling** to use our logging system
+- [ ] **Add cost tracking integration** with existing memory/cost_tracker.py
+
+### Configuration Integration
+
+- [ ] **Add Perplexity settings** to `config/settings.py`
+- [ ] **Environment variable setup** for API keys and configuration
+- [ ] **Update .env.example** with required Perplexity variables
+- [ ] **Add configuration validation** for required settings
+
+### API Integration
 
 - **Perplexity API Endpoint**: `https://api.perplexity.ai/chat/completions`
 - **Authentication**: API key via environment variable `PERPLEXITY_API_KEY`
@@ -165,29 +201,33 @@ PERPLEXITY_TIMEOUT = int(os.getenv('PERPLEXITY_TIMEOUT', 30))
 
 ### Implementation Timeline
 
-#### Phase 1: Core Implementation (Week 1)
-- Create basic MCP server structure
-- Implement Perplexity API client
-- Add basic search functionality
-- Create unit tests
+#### Phase 1: Repository Integration (Week 1)
 
-#### Phase 2: Integration (Week 2)
+- Clone and evaluate MCP Perplexity repository
+- Integrate into tool_recommendation directory structure
+- Update import paths and dependencies
+- Basic functionality testing
+
+#### Phase 2: System Integration (Week 2)
+
 - Integrate with existing MCP infrastructure
-- Add UI components for search
-- Implement memory integration
-- Add cost tracking
+- Add UI components for search functionality
+- Implement memory and cost tracking integration
+- Add configuration management
 
-#### Phase 3: Enhancement (Week 3)
-- Add advanced search features
-- Implement error handling
-- Add comprehensive testing
-- Create documentation
+#### Phase 3: Enhancement & Testing (Week 3)
 
-#### Phase 4: Optimization (Week 4)
-- Performance optimization
-- Security hardening
-- User experience improvements
+- Add advanced search features and error handling
+- Implement comprehensive testing suite
+- Add performance optimization
+- Create documentation and usage examples
+
+#### Phase 4: Production Readiness (Week 4)
+
+- Performance optimization and security hardening
+- User experience improvements and feedback integration
 - Production deployment preparation
+- Monitoring and alerting setup
 
 ### Success Metrics
 
@@ -196,6 +236,54 @@ PERPLEXITY_TIMEOUT = int(os.getenv('PERPLEXITY_TIMEOUT', 30))
 - [ ] **Error Rate** < 5% of total requests
 - [ ] **Cost Efficiency** within budget constraints
 - [ ] **User Adoption** > 70% of active users utilize search
+
+## Repository Cloning & Setup Commands
+
+### Prerequisites
+
+```bash
+# Ensure we're in the correct directory
+cd /workspaces/Docy_Search_GitHub/docy_search/tool_recommendation
+```
+
+### Cloning Process
+
+```bash
+# Option 1: Clone a specific MCP Perplexity repository (example)
+git clone https://github.com/[owner]/mcp-perplexity-server.git mcp_perplexity
+
+# Option 2: If using Git submodule for easier management
+git submodule add https://github.com/[owner]/mcp-perplexity-server.git mcp_perplexity
+
+# Navigate to cloned directory
+cd mcp_perplexity
+
+# Install dependencies if needed
+pip install -r requirements.txt
+```
+
+### Post-Clone Integration Steps
+
+```bash
+# 1. Update our main requirements.txt
+echo "# Perplexity MCP Server dependencies" >> ../../requirements.txt
+cat mcp_perplexity/requirements.txt >> ../../requirements.txt
+
+# 2. Create integration wrapper
+touch ../perplexity_integration.py
+
+# 3. Update our MCP server registry
+# (Manual edit required in mcp_server.py)
+```
+
+### Repository Candidates
+
+Popular MCP Perplexity repositories to consider:
+- `modelcontextprotocol/servers` (official MCP servers collection)
+- Community-maintained Perplexity MCP implementations
+- Custom Perplexity API wrappers with MCP support
+
+**Note**: Replace `[owner]/mcp-perplexity-server` with the actual repository URL once identified.
 
 ## Dependencies
 
