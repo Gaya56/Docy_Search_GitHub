@@ -1,60 +1,58 @@
 ### Project Summary
 
-We’re building a simple, responsive website for a custom "Sona" business. Clients can upload or take a photo of the space where they want their Sona (e.g., a mural or artwork), then use an interactive builder to design and place their own Sona in that space. As they adjust style, size, and options, they see live price updates. The site must work seamlessly on phones, tablets, and desktops.
-
-Edited Prompt Document
-
-### Overview
-
-We want to build a user-friendly web application that lets customers create custom Sonas (visual art pieces) by uploading or photographing their target space. The key features include real-time design, seamless photo capture on any device, and dynamic price calculation as clients customize their Sonas.
+We're building an automated sports betting analysis pipeline that searches the web daily for expert picks and sports statistics to provide one optimized pick per day. The system will aggregate data from multiple sources, perform comprehensive analysis using AI tools, and utilize machine learning to learn from past predictions and improve accuracy over time.
 
 ### Technical Requirements
 
-#### Frontend:
+#### Data Collection:
 
-- Framework: React + TypeScript or Vue.js
-- Responsive styling: Tailwind CSS or Bootstrap
-- Photo capture and upload: HTML5 file input with image capture and fallback file picker
-- Interactive builder: Canvas or WebGL component to place and adjust the Sona preview
-- Live price updates: React state or Vue reactivity to recalculate price on changes
+- Daily web scraping for expert picks from sports betting analysts
+- Real-time sports statistics from various sources
+- News and sentiment analysis from sports media
+- Historical data for backtesting and model training
 
-Backend:
+#### Cloud Infrastructure:
 
-Language: Node.js with TypeScript or Python (FastAPI)
+- **Storage**: Cloud storage for raw data and processed datasets
+- **Analytics**: Data warehousing and statistical analysis platform
+- **ML Platform**: Machine learning services for training and deploying models
+- **Automation**: Scheduled functions for daily data collection pipeline
 
-#### Backend:
+#### Local Processing:
 
-- Language: Node.js with TypeScript or Python (FastAPI)
-- Framework: Express.js (Node) or FastAPI (Python)
-- Database: PostgreSQL for orders and design presets
-- Image processing: Sharp (Node) or Pillow (Python) to resize and process client photos
+- Statistical analysis and data processing
+- Machine learning models for prediction
+- Decision engine combining multiple data sources
+- Backtesting system for accuracy validation
 
-Backend: Railway, Heroku, or AWS Elastic Beanstalk
+#### Key Features:
 
-Storage: AWS S3 or Cloudinary for uploaded images
-#### DevOps/Hosting:
+- **Expert Opinion Analysis**: Aggregate and weight picks from multiple analysts
+- **Statistical Modeling**: Team/player performance, injuries, weather, historical trends
+- **AI Analysis**: Multiple AI tools for different aspects of game analysis
+- **Learning System**: Continuous improvement based on prediction outcomes
+- **Decision Engine**: Final pick based on comprehensive analysis
 
-- Frontend: Vercel or Netlify
-- Backend: Railway, Heroku, or AWS Elastic Beanstalk
-- Storage: AWS S3 or Cloudinary for uploaded images
-- CI/CD: GitHub Actions for automated builds and deployments
-Performance & Scalability: Optimize image processing pipelines and caching to handle many concurrent users without lag.
+### Architecture Flow
 
-User Authentication & Orders: Secure client accounts, save projects in progress, and manage checkout flow.
+1. **Daily Data Collection** → Automated scraping of expert picks and statistics
+2. **Data Processing** → Clean, normalize, and store collected data
+3. **Analysis** → Statistical analysis and ML predictions
+4. **Decision Engine** → Compare expert opinions vs stats for final pick
+5. **Learning Loop** → Track results and improve future predictions
 
-### Key Challenges
+### Success Metrics
 
-- **Cross-Device Photo Capture:** Ensure the upload component works reliably on mobile cameras and desktop file pickers.
-- **Real-Time Preview & Pricing:** Implement an efficient canvas-based preview component that reflects design changes instantly and triggers price recalculation.
-- **Performance & Scalability:** Optimize image processing pipelines and caching to handle many concurrent users without lag.
-- **User Authentication & Orders:** Secure client accounts, save projects in progress, and manage checkout flow.
-
-Test on multiple devices (iOS, Android, desktop) to verify photo capture and preview functionality.
+- Prediction accuracy over time
+- Consistency of profitable recommendations
+- Model improvement through learning
+- Real-time processing capability
 
 ### Next Steps
 
-1. Prototype the photo upload + canvas preview feature in a sandbox React app.
-2. Build a pricing engine service that calculates cost based on dimensions, materials, and options.
-3. Design database schema for storing projects, users, and orders.
-4. Set up basic UI routing and authentication flow.
-5. Test on multiple devices (iOS, Android, desktop) to verify photo capture and preview functionality.
+1. Research and select cloud platform and tools
+2. Build web scraping infrastructure for data collection
+3. Develop initial analysis and ML frameworks
+4. Create decision engine for combining multiple inputs
+5. Implement learning system for continuous improvement
+6. Deploy automated
