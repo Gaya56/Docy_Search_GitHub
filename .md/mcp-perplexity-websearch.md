@@ -246,35 +246,93 @@ PERPLEXITY_TIMEOUT = int(os.getenv('PERPLEXITY_TIMEOUT', 30))
 cd /workspaces/Docy_Search_GitHub/docy_search/tool_recommendation
 ```
 
-### Cloning Process
+### Cloning Process (Clean Integration)
 
 ```bash
-# Option 1: Clone a specific MCP Perplexity repository (example)
-git clone https://github.com/[owner]/mcp-perplexity-server.git mcp_perplexity
+# Step 1: Clone to temporary directory (avoid git history conflicts)
+cd /tmp
+git clone https://github.com/[owner]/mcp-perplexity-server.git mcp-perplexity-temp
 
-# Option 2: If using Git submodule for easier management
-git submodule add https://github.com/[owner]/mcp-perplexity-server.git mcp_perplexity
+# Step 2: Create target directory in our project
+cd /workspaces/Docy_Search_GitHub/docy_search/tool_recommendation
+mkdir -p mcp_perplexity
 
-# Navigate to cloned directory
+# Step 3: Copy only necessary files (no .git history)
+cp -r /tmp/mcp-perplexity-temp/src/* mcp_perplexity/ 2>/dev/null || true
+cp -r /tmp/mcp-perplexity-temp/*.py mcp_perplexity/ 2>/dev/null || true
+cp /tmp/mcp-perplexity-temp/requirements.txt mcp_perplexity/ 2>/dev/null || true
+cp /tmp/mcp-perplexity-temp/README.md mcp_perplexity/ 2>/dev/null || true
+cp /tmp/mcp-perplexity-temp/LICENSE mcp_perplexity/ 2>/dev/null || true
+
+# Step 4: Clean up temporary directory
+rm -rf /tmp/mcp-perplexity-temp
+
+# Step 5: Initialize our own tracking
 cd mcp_perplexity
+touch __init__.py  # Ensure it's a Python package
+```
 
-# Install dependencies if needed
-pip install -r requirements.txt
+### Alternative: Selective File Copy
+
+```bash
+# For more control over which files to copy
+cd /tmp
+git clone https://github.com/[owner]/mcp-perplexity-server.git mcp-perplexity-temp
+cd mcp-perplexity-temp
+
+# List files to understand structure
+find . -name "*.py" -not -path "./.git/*"
+find . -name "requirements*.txt" -not -path "./.git/*"
+
+# Copy specific files/directories
+cd /workspaces/Docy_Search_GitHub/docy_search/tool_recommendation
+mkdir -p mcp_perplexity
+
+# Copy core Python files
+cp /tmp/mcp-perplexity-temp/server.py mcp_perplexity/
+cp /tmp/mcp-perplexity-temp/client.py mcp_perplexity/
+cp /tmp/mcp-perplexity-temp/models.py mcp_perplexity/
+cp /tmp/mcp-perplexity-temp/config.py mcp_perplexity/
+
+# Copy configuration files
+cp /tmp/mcp-perplexity-temp/requirements.txt mcp_perplexity/
+cp /tmp/mcp-perplexity-temp/pyproject.toml mcp_perplexity/ 2>/dev/null || true
+
+# Copy documentation
+cp /tmp/mcp-perplexity-temp/README.md mcp_perplexity/README-original.md
+
+# Cleanup
+rm -rf /tmp/mcp-perplexity-temp
 ```
 
 ### Post-Clone Integration Steps
 
 ```bash
-# 1. Update our main requirements.txt
-echo "# Perplexity MCP Server dependencies" >> ../../requirements.txt
-cat mcp_perplexity/requirements.txt >> ../../requirements.txt
+# 1. Merge dependencies into our requirements.txt
+cd /workspaces/Docy_Search_GitHub
+echo "" >> requirements.txt
+echo "# Perplexity MCP Server dependencies" >> requirements.txt
+cat docy_search/tool_recommendation/mcp_perplexity/requirements.txt >> requirements.txt
 
 # 2. Create integration wrapper
-touch ../perplexity_integration.py
+touch docy_search/tool_recommendation/perplexity_integration.py
 
-# 3. Update our MCP server registry
-# (Manual edit required in mcp_server.py)
+# 3. Add to git tracking (now it's part of our repo)
+git add docy_search/tool_recommendation/mcp_perplexity/
+git commit -m "Add MCP Perplexity integration (clean copy without external git history)"
+
+# 4. Install new dependencies
+pip install -r requirements.txt
 ```
+
+### Benefits of This Approach
+
+✅ **Clean integration** - No external git history conflicts  
+✅ **Full control** - Only copy files we actually need  
+✅ **Repository ownership** - Becomes part of our codebase  
+✅ **No submodule complexity** - Avoid git submodule management issues  
+✅ **Customizable** - Easy to modify without upstream conflicts  
+✅ **Self-contained** - All code lives in our repository
 
 ### Repository Candidates
 
