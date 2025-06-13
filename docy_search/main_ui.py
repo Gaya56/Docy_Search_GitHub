@@ -249,7 +249,7 @@ def render_perplexity_tab():
                         )
                     
                     # Create a prompt that will trigger the perplexity search
-                    prompt = (f"Please use the perplexity_search_web tool to search for: "
+                    prompt = (f"Please use the perplexity_search tool to search for: "
                              f"'{query}' with focus area '{focus}'")
                     
                     result = agent.run_sync(prompt)
@@ -294,7 +294,7 @@ def render_database_tools_tab():
                             )
                         
                         # Create a prompt that will trigger the database query
-                        prompt = (f"Please use the natural_language_query_db tool "
+                        prompt = (f"Please use the natural_language_query tool "
                                  f"to answer: '{question}'")
                         
                         result = agent.run_sync(prompt)
@@ -323,7 +323,7 @@ def render_database_tools_tab():
                             ['search_tools']
                         )
                     
-                    prompt = "Please use the get_database_schema_info tool to show the database schema"
+                    prompt = "Please use the get_database_schema tool to show the database schema"
                     
                     result = agent.run_sync(prompt)
                     
@@ -363,7 +363,7 @@ def render_code_analysis_tab():
                                 ['search_tools']
                             )
                         
-                        prompt = (f"Please use the analyze_repository_code tool "
+                        prompt = (f"Please use the analyze_repository tool "
                                  f"to analyze this repository: {repo_url}")
                         
                         result = agent.run_sync(prompt)
@@ -392,7 +392,7 @@ def render_code_analysis_tab():
                                 ['search_tools']
                             )
                         
-                        prompt = (f"Please use the quick_repository_summary tool "
+                        prompt = (f"Please use the analyze_repository tool "
                                  f"to get a summary of: {repo_url}")
                         
                         result = agent.run_sync(prompt)
