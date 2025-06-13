@@ -189,6 +189,166 @@ def display_footer():
     with col3:
         st.caption("🚀 Powered by Pydantic AI & MCP")
 
+
+def render_advanced_tools_tab():
+    """Render the Advanced Tools tab with our new tools"""
+    st.header("🔧 Advanced Tools")
+    st.markdown("Powerful tools for search, database queries, and code analysis")
+    
+    # Create sub-tabs for different tool categories
+    tool_tab1, tool_tab2, tool_tab3 = st.tabs([
+        "🧠 Perplexity Search", 
+        "🗃️ Database Tools", 
+        "📊 Code Analysis"
+    ])
+    
+    with tool_tab1:
+        render_perplexity_tab()
+    
+    with tool_tab2:
+        render_database_tools_tab()
+    
+    with tool_tab3:
+        render_code_analysis_tab()
+
+
+def render_perplexity_tab():
+    """Render Perplexity AI search interface"""
+    st.subheader("🧠 Perplexity AI Search")
+    st.markdown("Search with AI-powered analysis and focused results")
+    
+    col1, col2 = st.columns([3, 1])
+    
+    with col1:
+        query = st.text_input(
+            "Search Query",
+            placeholder="Enter your search query...",
+            key="perplexity_query"
+        )
+    
+    with col2:
+        focus = st.selectbox(
+            "Focus Area",
+            ["general", "academic", "news", "coding", "business"],
+            key="perplexity_focus"
+        )
+    
+    if st.button("🔍 Search with Perplexity", type="primary"):
+        if query.strip():
+            with st.spinner("Searching with Perplexity AI..."):
+                try:
+                    # Import and use perplexity search
+                    import asyncio
+                    from docy_search.tool_recommendation.perplexity_search import perplexity_search
+                    
+                    result = asyncio.run(perplexity_search(query, focus))
+                    
+                    st.markdown("### Results")
+                    st.markdown(result)
+                    
+                except Exception as e:
+                    st.error(f"Error: {str(e)}")
+        else:
+            st.warning("Please enter a search query")
+
+
+def render_database_tools_tab():
+    """Render database query tools interface"""
+    st.subheader("🗃️ Database Query Tools")
+    st.markdown("Query your database using natural language")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("#### Natural Language Query")
+        question = st.text_area(
+            "Ask about your database",
+            placeholder="How many conversations are there?",
+            key="db_question"
+        )
+        
+        if st.button("🔍 Query Database", type="primary"):
+            if question.strip():
+                with st.spinner("Querying database..."):
+                    try:
+                        import asyncio
+                        from docy_search.tool_recommendation.sql_tools import natural_language_query
+                        
+                        result = asyncio.run(natural_language_query(question))
+                        st.markdown("### Query Results")
+                        st.code(result, language="json")
+                        
+                    except Exception as e:
+                        st.error(f"Error: {str(e)}")
+            else:
+                st.warning("Please enter a question")
+    
+    with col2:
+        st.markdown("#### Database Schema")
+        if st.button("📋 Show Database Schema"):
+            with st.spinner("Getting database schema..."):
+                try:
+                    import asyncio
+                    from docy_search.tool_recommendation.sql_tools import get_database_schema
+                    
+                    schema = asyncio.run(get_database_schema())
+                    st.markdown("### Database Schema")
+                    st.code(schema, language="json")
+                    
+                except Exception as e:
+                    st.error(f"Error: {str(e)}")
+
+
+def render_code_analysis_tab():
+    """Render code analysis tools interface"""
+    st.subheader("📊 Repository Code Analysis")
+    st.markdown("Analyze any GitHub repository for code quality and structure")
+    
+    repo_url = st.text_input(
+        "Repository URL or Path",
+        placeholder="https://github.com/user/repo or /path/to/repo",
+        key="repo_url"
+    )
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        if st.button("🔍 Full Analysis", type="primary"):
+            if repo_url.strip():
+                with st.spinner("Analyzing repository..."):
+                    try:
+                        import asyncio
+                        from docy_search.tool_recommendation.code_analyzer import analyze_repository
+                        
+                        result = asyncio.run(analyze_repository(repo_url))
+                        
+                        st.markdown("### Analysis Results")
+                        st.code(result, language="json")
+                        
+                    except Exception as e:
+                        st.error(f"Error: {str(e)}")
+            else:
+                st.warning("Please enter a repository URL or path")
+    
+    with col2:
+        if st.button("⚡ Quick Summary"):
+            if repo_url.strip():
+                with st.spinner("Getting repository summary..."):
+                    try:
+                        import asyncio
+                        from docy_search.tool_recommendation.code_analyzer import quick_repo_summary
+                        
+                        result = asyncio.run(quick_repo_summary(repo_url))
+                        
+                        st.markdown("### Repository Summary")
+                        st.code(result, language="json")
+                        
+                    except Exception as e:
+                        st.error(f"Error: {str(e)}")
+            else:
+                st.warning("Please enter a repository URL or path")
+
+
 def main():
     """Main Streamlit application"""
     # Initialize session state
@@ -204,7 +364,7 @@ def main():
     display_configuration_banner()
     
     # Create tab-based interface
-    tab1, tab2 = st.tabs(["💬 AI Assistant", "📊 Dashboard"])
+    tab1, tab2, tab3 = st.tabs(["💬 AI Assistant", "📊 Dashboard", "🔧 Advanced Tools"])
     
     with tab1:
         # Chat interface with memory component
@@ -251,6 +411,10 @@ def main():
         # Dashboard interface
         dashboard_component = DashboardComponent()
         dashboard_component.render()
+    
+    with tab3:
+        # Advanced Tools interface
+        render_advanced_tools_tab()
     
     # Footer
     display_footer()
