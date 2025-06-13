@@ -6,6 +6,12 @@ from dotenv import load_dotenv
 import google.generativeai as genai
 from typing import List, Dict, Any
 import re
+import aiohttp
+import sqlite3
+import tempfile
+import subprocess
+import shutil
+from pathlib import Path
 
 # Import activity tracking with graceful fallback
 try:
@@ -404,6 +410,519 @@ Make the comparison actionable for decision-making in development projects."""
         return f"# Tool Comparison: {', '.join(tools)}\n\n{ai_response.text}"
     except Exception as e:
         return f"Tool comparison failed: {str(e)}"
+
+
+@mcp.tool()
+async def perplexity_search(
+    query: str, 
+    focus: str = "general",
+    max_results: int = 5
+) -> str:
+    """
+    Search using Perplexity AI with focused results
+    
+    Args:
+        query: Search query
+        focus: Focus area (general, academic, news, coding, business)
+        max_results: Maximum number of results
+    """
+    activity_id = None
+    
+    try:
+        # Start activity tracking
+        if TRACKING_AVAILABLE:
+            query_preview = (
+                query[:50] + "..." if len(query) > 50 else query
+            )
+            activity_id = await activity_tracker.start_activity(
+                tool_name="perplexity_search",
+                params={
+                    "query": query_preview,
+                    "focus": focus,
+                    "max_results": max_results
+                }
+            )
+            await activity_tracker.update_activity(
+                activity_id,
+                progress=20,
+                details={"status": "Preparing Perplexity search"}
+            )
+        
+        perplexity_api_key = os.getenv("PERPLEXITY_API_KEY", "")
+        if not perplexity_api_key:
+            error_msg = ("Error: PERPLEXITY_API_KEY not found in "
+                        "environment variables")
+            if TRACKING_AVAILABLE and activity_id:
+                await activity_tracker.complete_activity(
+                    activity_id, result=error_msg)
+            return error_msg
+        
+        # Define focus prompts
+        focus_prompts = {
+            "academic": ("Provide academic and research-focused results "
+                        "with citations and scholarly sources"),
+            "news": ("Focus on recent news and current events from "
+                    "reliable news sources"),
+            "coding": ("Emphasize programming, technical documentation, "
+                      "and development resources"),
+            "business": ("Focus on business insights, market analysis, "
+                        "and industry information"),
+            "general": ("Provide comprehensive general information "
+                       "from reliable sources")
+        }
+        
+        if TRACKING_AVAILABLE and activity_id:
+            await activity_tracker.update_activity(
+                activity_id,
+                progress=40,
+                details={"status": "Sending API request"}
+            )
+        
+        # Prepare the request
+        headers = {
+            "Authorization": f"Bearer {perplexity_api_key}",
+            "Content-Type": "application/json"
+        }
+        
+        system_prompt = focus_prompts.get(focus, focus_prompts['general'])
+        
+        payload = {
+            "model": "llama-3.1-sonar-small-128k-online",
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": query}
+            ],
+            "max_tokens": 1000,
+            "temperature": 0.2
+        }
+        
+        # Make the API call
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                "https://api.perplexity.ai/chat/completions",
+                headers=headers,
+                json=payload
+            ) as response:
+                if TRACKING_AVAILABLE and activity_id:
+                    await activity_tracker.update_activity(
+                        activity_id,
+                        progress=70,
+                        details={"status": "Processing results"}
+                    )
+                
+                if response.status == 200:
+                    data = await response.json()
+                    result_content = data['choices'][0]['message']['content']
+                    
+                    # Format the result
+                    formatted_result = f"### 🧠 Perplexity AI Search Results\n\n"
+                    formatted_result += f"**Query:** {query}\n"
+                    formatted_result += f"**Focus:** {focus.title()}\n\n"
+                    formatted_result += "---\n\n"
+                    formatted_result += result_content
+                    formatted_result += "\n\n---\n"
+                    formatted_result += "*Powered by Perplexity AI*"
+                    
+                    # Complete activity tracking with success
+                    if TRACKING_AVAILABLE and activity_id:
+                        result_preview = (
+                            f"Perplexity search completed for: "
+                            f"{query[:30]}{'...' if len(query) > 30 else ''}"
+                        )
+                        await activity_tracker.complete_activity(
+                            activity_id, result=result_preview)
+                    
+                    return formatted_result
+                else:
+                    error_text = await response.text()
+                    error_msg = (f"Perplexity API Error: {response.status} "
+                               f"- {error_text}")
+                    
+                    # Complete activity tracking with error
+                    if TRACKING_AVAILABLE and activity_id:
+                        await activity_tracker.complete_activity(
+                            activity_id,
+                            result=f"API Error: {response.status}")
+                    
+                    return error_msg
+                    
+    except Exception as e:
+        error_msg = (f"An error occurred while searching with Perplexity: "
+                    f"{str(e)}")
+        
+        # Complete activity tracking with error
+        if TRACKING_AVAILABLE and activity_id:
+            await activity_tracker.complete_activity(
+                activity_id,
+                result=f"Search failed: {str(e)[:50]}")
+        
+        return error_msg
+
+
+@mcp.tool()
+async def natural_language_query(question: str) -> str:
+    """
+    Convert natural language question to SQL and execute against database
+    
+    Args:
+        question: Natural language question about the database
+    """
+    activity_id = None
+    
+    try:
+        # Start activity tracking
+        if TRACKING_AVAILABLE:
+            question_preview = (
+                question[:50] + "..." if len(question) > 50 else question
+            )
+            activity_id = await activity_tracker.start_activity(
+                tool_name="natural_language_query",
+                params={"question": question_preview}
+            )
+            await activity_tracker.update_activity(
+                activity_id,
+                progress=20,
+                details={"status": "Converting to SQL"}
+            )
+    
+        db_path = "/workspaces/Docy_Search_GitHub/docy_search.db"
+        
+        # Simple NL to SQL conversion patterns
+        sql_patterns = {
+            r"how many.*conversations":
+                "SELECT COUNT(*) as count FROM conversations",
+            r"latest.*conversations":
+                ("SELECT * FROM conversations ORDER BY created_at DESC "
+                 "LIMIT 10"),
+            r"search.*memory":
+                "SELECT * FROM memory_items WHERE content LIKE '%{}%'",
+            r"all.*agents":
+                "SELECT * FROM agents",
+            r"recent.*activity":
+                ("SELECT * FROM conversations ORDER BY updated_at DESC "
+                 "LIMIT 5"),
+            r"show.*tables":
+                "SELECT name FROM sqlite_master WHERE type='table'",
+            r"count.*memory":
+                "SELECT COUNT(*) as count FROM memory_items",
+            r"list.*conversations":
+                "SELECT id, title, created_at FROM conversations LIMIT 20"
+        }
+        
+        question_lower = question.lower()
+        
+        if TRACKING_AVAILABLE and activity_id:
+            await activity_tracker.update_activity(
+                activity_id,
+                progress=50,
+                details={"status": "Executing query"}
+            )
+        
+        # Find matching pattern
+        sql_query = None
+        for pattern, query_template in sql_patterns.items():
+            if re.search(pattern, question_lower):
+                if '{}' in query_template:
+                    # Extract search term (last few words)
+                    words = question_lower.split()
+                    search_term = ' '.join(words[-2:])
+                    sql_query = query_template.format(search_term)
+                else:
+                    sql_query = query_template
+                break
+        
+        if not sql_query:
+            error_msg = (
+                f"Could not understand question: '{question}'. "
+                f"Try asking about conversations, memory, or agents."
+            )
+            if TRACKING_AVAILABLE and activity_id:
+                await activity_tracker.complete_activity(
+                    activity_id, result=error_msg)
+            return error_msg
+        
+        # Execute query safely (only SELECT operations)
+        if not sql_query.upper().strip().startswith('SELECT'):
+            error_msg = "Only SELECT queries are allowed for security"
+            if TRACKING_AVAILABLE and activity_id:
+                await activity_tracker.complete_activity(
+                    activity_id, result=error_msg)
+            return error_msg
+        
+        try:
+            with sqlite3.connect(db_path) as conn:
+                conn.row_factory = sqlite3.Row
+                cursor = conn.execute(sql_query)
+                rows = cursor.fetchall()
+                
+                # Convert to list of dicts
+                result = []
+                for row in rows:
+                    result.append(dict(row))
+                
+                if TRACKING_AVAILABLE and activity_id:
+                    await activity_tracker.update_activity(
+                        activity_id,
+                        progress=80,
+                        details={"status": "Formatting results"}
+                    )
+                
+                # Format results
+                if len(result) == 0:
+                    formatted_result = "No results found."
+                else:
+                    formatted_result = json.dumps(
+                        result, indent=2, default=str
+                    )
+                
+                # Complete activity tracking with success
+                if TRACKING_AVAILABLE and activity_id:
+                    result_preview = (
+                        f"Query completed: {len(result)} rows returned"
+                    )
+                    await activity_tracker.complete_activity(
+                        activity_id, result=result_preview)
+                
+                return formatted_result
+        
+        except Exception as e:
+            error_msg = f"Database query failed: {str(e)}"
+            if TRACKING_AVAILABLE and activity_id:
+                await activity_tracker.complete_activity(
+                    activity_id, result=error_msg)
+            return error_msg
+        
+    except Exception as e:
+        error_msg = f"Error processing question: {str(e)}"
+        
+        # Complete activity tracking with error
+        if TRACKING_AVAILABLE and activity_id:
+            await activity_tracker.complete_activity(
+                activity_id, result=f"Processing failed: {str(e)[:50]}")
+        
+        return error_msg
+
+
+@mcp.tool()
+async def get_database_schema() -> str:
+    """Get the database schema information"""
+    activity_id = None
+    
+    try:
+        # Start activity tracking
+        if TRACKING_AVAILABLE:
+            activity_id = await activity_tracker.start_activity(
+                tool_name="get_database_schema",
+                params={}
+            )
+            await activity_tracker.update_activity(
+                activity_id,
+                progress=30,
+                details={"status": "Reading schema"}
+            )
+        
+        db_path = "/workspaces/Docy_Search_GitHub/docy_search.db"
+        
+        with sqlite3.connect(db_path) as conn:
+            cursor = conn.execute(
+                "SELECT name FROM sqlite_master WHERE type='table'"
+            )
+            tables = cursor.fetchall()
+            
+            if TRACKING_AVAILABLE and activity_id:
+                await activity_tracker.update_activity(
+                    activity_id,
+                    progress=70,
+                    details={"status": "Getting table details"}
+                )
+            
+            schema_info = {}
+            for (table_name,) in tables:
+                cursor = conn.execute(f"PRAGMA table_info({table_name})")
+                columns = cursor.fetchall()
+                schema_info[table_name] = [
+                    {
+                        "name": col[1],
+                        "type": col[2],
+                        "not_null": bool(col[3])
+                    }
+                    for col in columns
+                ]
+            
+            formatted_schema = json.dumps(schema_info, indent=2)
+            
+            # Complete activity tracking with success
+            if TRACKING_AVAILABLE and activity_id:
+                result_preview = f"Schema retrieved: {len(tables)} tables"
+                await activity_tracker.complete_activity(
+                    activity_id, result=result_preview)
+            
+            return formatted_schema
+            
+    except Exception as e:
+        error_msg = f"Error getting schema: {str(e)}"
+        
+        # Complete activity tracking with error
+        if TRACKING_AVAILABLE and activity_id:
+            await activity_tracker.complete_activity(
+                activity_id, result=f"Schema error: {str(e)[:50]}")
+        
+        return error_msg
+
+
+@mcp.tool()
+async def analyze_repository(repo_url_or_path: str) -> str:
+    """
+    Analyze any repository's code quality, structure, and dependencies
+    
+    Args:
+        repo_url_or_path: GitHub URL or local path to repository
+    """
+    activity_id = None
+    temp_path = None
+    
+    try:
+        # Start activity tracking
+        if TRACKING_AVAILABLE:
+            activity_id = await activity_tracker.start_activity(
+                tool_name="analyze_repository",
+                params={"repo": repo_url_or_path[:100]}
+            )
+            await activity_tracker.update_activity(
+                activity_id,
+                progress=10,
+                details={"status": "Cloning repository"}
+            )
+        
+        # Clone or validate repository
+        local_path = None
+        if repo_url_or_path.startswith(('http://', 'https://', 'git@')):
+            # It's a URL, need to clone
+            temp_path = tempfile.mkdtemp(prefix="code_analysis_")
+            try:
+                result = subprocess.run([
+                    'git', 'clone', '--depth', '1', 
+                    repo_url_or_path, temp_path
+                ], capture_output=True, text=True, timeout=60)
+                
+                if result.returncode == 0:
+                    local_path = temp_path
+                else:
+                    shutil.rmtree(temp_path, ignore_errors=True)
+                    error_msg = f"Could not clone repository: {repo_url_or_path}"
+                    if TRACKING_AVAILABLE and activity_id:
+                        await activity_tracker.complete_activity(
+                            activity_id, result=error_msg)
+                    return error_msg
+            except (subprocess.TimeoutExpired, 
+                   subprocess.CalledProcessError) as e:
+                shutil.rmtree(temp_path, ignore_errors=True)
+                error_msg = f"Clone failed: {str(e)}"
+                if TRACKING_AVAILABLE and activity_id:
+                    await activity_tracker.complete_activity(
+                        activity_id, result=error_msg)
+                return error_msg
+        else:
+            # It's a local path
+            if Path(repo_url_or_path).exists():
+                local_path = repo_url_or_path
+            else:
+                error_msg = f"Path does not exist: {repo_url_or_path}"
+                if TRACKING_AVAILABLE and activity_id:
+                    await activity_tracker.complete_activity(
+                        activity_id, result=error_msg)
+                return error_msg
+        
+        if TRACKING_AVAILABLE and activity_id:
+            await activity_tracker.update_activity(
+                activity_id,
+                progress=40,
+                details={"status": "Analyzing structure"}
+            )
+        
+        # Analyze repository
+        repo_path = Path(local_path)
+        
+        # Basic info
+        repo_info = {
+            "name": repo_path.name,
+            "total_files": 0,
+            "has_readme": False,
+            "languages": {}
+        }
+        
+        # Count files and detect languages
+        for file_path in repo_path.rglob("*"):
+            if file_path.is_file():
+                repo_info["total_files"] += 1
+                ext = file_path.suffix.lower()
+                if ext:
+                    repo_info["languages"][ext] = repo_info["languages"].get(ext, 0) + 1
+        
+        # Check for README
+        readme_files = ["README.md", "readme.md", "README.txt", "README"]
+        for readme in readme_files:
+            if (repo_path / readme).exists():
+                repo_info["has_readme"] = True
+                break
+        
+        # Dependencies analysis
+        dependencies = {"language": "unknown", "package_managers": []}
+        
+        # Python
+        py_files = ["requirements.txt", "pyproject.toml", "setup.py"]
+        for py_file in py_files:
+            if (repo_path / py_file).exists():
+                dependencies["language"] = "python"
+                dependencies["package_managers"].append(py_file)
+        
+        # JavaScript/Node.js
+        if (repo_path / "package.json").exists():
+            dependencies["language"] = "javascript"
+            dependencies["package_managers"].append("package.json")
+        
+        if TRACKING_AVAILABLE and activity_id:
+            await activity_tracker.update_activity(
+                activity_id,
+                progress=80,
+                details={"status": "Formatting results"}
+            )
+        
+        # Combine results
+        analysis_result = {
+            "repository_url": repo_url_or_path,
+            "summary": repo_info,
+            "dependencies": dependencies
+        }
+        
+        # Clean up temporary directory
+        if temp_path:
+            shutil.rmtree(temp_path, ignore_errors=True)
+        
+        # Complete activity tracking
+        if TRACKING_AVAILABLE and activity_id:
+            result_preview = (
+                f"Analysis completed for {repo_info['name']} "
+                f"({dependencies['language']} project)"
+            )
+            await activity_tracker.complete_activity(
+                activity_id, result=result_preview)
+        
+        return json.dumps(analysis_result, indent=2, default=str)
+        
+    except Exception as e:
+        # Clean up on error
+        if temp_path:
+            shutil.rmtree(temp_path, ignore_errors=True)
+        
+        error_msg = f"Error analyzing repository: {str(e)}"
+        
+        if TRACKING_AVAILABLE and activity_id:
+            await activity_tracker.complete_activity(
+                activity_id, result=f"Analysis failed: {str(e)[:50]}")
+        
+        return error_msg
+
 
 if __name__ == "__main__":
     mcp.run()

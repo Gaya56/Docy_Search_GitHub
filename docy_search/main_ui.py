@@ -237,14 +237,25 @@ def render_perplexity_tab():
         if query.strip():
             with st.spinner("Searching with Perplexity AI..."):
                 try:
-                    # Import and use perplexity search
-                    import asyncio
-                    from docy_search.tool_recommendation.perplexity_search import perplexity_search
+                    # Use the AI agent to call the perplexity search tool
+                    agent = st.session_state.get('agent_openai_', None)
+                    if not agent:
+                        from docy_search.app import create_agent_with_context
+                        agent = create_agent_with_context(
+                            st.session_state.project_context,
+                            st.session_state.user_id,
+                            'openai',
+                            ['search_tools']
+                        )
                     
-                    result = asyncio.run(perplexity_search(query, focus))
+                    # Create a prompt that will trigger the perplexity search
+                    prompt = (f"Please use the perplexity_search_web tool to search for: "
+                             f"'{query}' with focus area '{focus}'")
+                    
+                    result = agent.run_sync(prompt)
                     
                     st.markdown("### Results")
-                    st.markdown(result)
+                    st.markdown(str(result.output))
                     
                 except Exception as e:
                     st.error(f"Error: {str(e)}")
@@ -271,12 +282,25 @@ def render_database_tools_tab():
             if question.strip():
                 with st.spinner("Querying database..."):
                     try:
-                        import asyncio
-                        from docy_search.tool_recommendation.sql_tools import natural_language_query
+                        # Use the AI agent to call the database query tool
+                        agent = st.session_state.get('agent_openai_', None)
+                        if not agent:
+                            from docy_search.app import create_agent_with_context
+                            agent = create_agent_with_context(
+                                st.session_state.project_context,
+                                st.session_state.user_id,
+                                'openai',
+                                ['search_tools']
+                            )
                         
-                        result = asyncio.run(natural_language_query(question))
+                        # Create a prompt that will trigger the database query
+                        prompt = (f"Please use the natural_language_query_db tool "
+                                 f"to answer: '{question}'")
+                        
+                        result = agent.run_sync(prompt)
+                        
                         st.markdown("### Query Results")
-                        st.code(result, language="json")
+                        st.code(str(result.output), language="json")
                         
                     except Exception as e:
                         st.error(f"Error: {str(e)}")
@@ -288,12 +312,23 @@ def render_database_tools_tab():
         if st.button("📋 Show Database Schema"):
             with st.spinner("Getting database schema..."):
                 try:
-                    import asyncio
-                    from docy_search.tool_recommendation.sql_tools import get_database_schema
+                    # Use the AI agent to get database schema
+                    agent = st.session_state.get('agent_openai_', None)
+                    if not agent:
+                        from docy_search.app import create_agent_with_context
+                        agent = create_agent_with_context(
+                            st.session_state.project_context,
+                            st.session_state.user_id,
+                            'openai',
+                            ['search_tools']
+                        )
                     
-                    schema = asyncio.run(get_database_schema())
+                    prompt = "Please use the get_database_schema_info tool to show the database schema"
+                    
+                    result = agent.run_sync(prompt)
+                    
                     st.markdown("### Database Schema")
-                    st.code(schema, language="json")
+                    st.code(str(result.output), language="json")
                     
                 except Exception as e:
                     st.error(f"Error: {str(e)}")
@@ -317,13 +352,24 @@ def render_code_analysis_tab():
             if repo_url.strip():
                 with st.spinner("Analyzing repository..."):
                     try:
-                        import asyncio
-                        from docy_search.tool_recommendation.code_analyzer import analyze_repository
+                        # Use the AI agent to call the code analysis tool
+                        agent = st.session_state.get('agent_openai_', None)
+                        if not agent:
+                            from docy_search.app import create_agent_with_context
+                            agent = create_agent_with_context(
+                                st.session_state.project_context,
+                                st.session_state.user_id,
+                                'openai',
+                                ['search_tools']
+                            )
                         
-                        result = asyncio.run(analyze_repository(repo_url))
+                        prompt = (f"Please use the analyze_repository_code tool "
+                                 f"to analyze this repository: {repo_url}")
+                        
+                        result = agent.run_sync(prompt)
                         
                         st.markdown("### Analysis Results")
-                        st.code(result, language="json")
+                        st.code(str(result.output), language="json")
                         
                     except Exception as e:
                         st.error(f"Error: {str(e)}")
@@ -335,13 +381,24 @@ def render_code_analysis_tab():
             if repo_url.strip():
                 with st.spinner("Getting repository summary..."):
                     try:
-                        import asyncio
-                        from docy_search.tool_recommendation.code_analyzer import quick_repo_summary
+                        # Use the AI agent for quick summary
+                        agent = st.session_state.get('agent_openai_', None)
+                        if not agent:
+                            from docy_search.app import create_agent_with_context
+                            agent = create_agent_with_context(
+                                st.session_state.project_context,
+                                st.session_state.user_id,
+                                'openai',
+                                ['search_tools']
+                            )
                         
-                        result = asyncio.run(quick_repo_summary(repo_url))
+                        prompt = (f"Please use the quick_repository_summary tool "
+                                 f"to get a summary of: {repo_url}")
+                        
+                        result = agent.run_sync(prompt)
                         
                         st.markdown("### Repository Summary")
-                        st.code(result, language="json")
+                        st.code(str(result.output), language="json")
                         
                     except Exception as e:
                         st.error(f"Error: {str(e)}")
