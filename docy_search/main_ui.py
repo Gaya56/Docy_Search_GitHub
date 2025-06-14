@@ -189,6 +189,223 @@ def display_footer():
     with col3:
         st.caption("🚀 Powered by Pydantic AI & MCP")
 
+
+def render_advanced_tools_tab():
+    """Render the Advanced Tools tab with our new tools"""
+    st.header("🔧 Advanced Tools")
+    st.markdown("Powerful tools for search, database queries, and code analysis")
+    
+    # Create sub-tabs for different tool categories
+    tool_tab1, tool_tab2, tool_tab3 = st.tabs([
+        "🧠 Perplexity Search", 
+        "🗃️ Database Tools", 
+        "📊 Code Analysis"
+    ])
+    
+    with tool_tab1:
+        render_perplexity_tab()
+    
+    with tool_tab2:
+        render_database_tools_tab()
+    
+    with tool_tab3:
+        render_code_analysis_tab()
+
+
+def render_perplexity_tab():
+    """Render Perplexity AI search interface"""
+    st.subheader("🧠 Perplexity AI Search")
+    st.markdown("Search with AI-powered analysis and focused results")
+    
+    col1, col2 = st.columns([3, 1])
+    
+    with col1:
+        query = st.text_input(
+            "Search Query",
+            placeholder="Enter your search query...",
+            key="perplexity_query"
+        )
+    
+    with col2:
+        focus = st.selectbox(
+            "Focus Area",
+            ["general", "academic", "news", "coding", "business"],
+            key="perplexity_focus"
+        )
+    
+    if st.button("🔍 Search with Perplexity", type="primary"):
+        if query.strip():
+            with st.spinner("Searching with Perplexity AI..."):
+                try:
+                    # Use the AI agent to call the perplexity search tool
+                    agent = st.session_state.get('agent_openai_', None)
+                    if not agent:
+                        from docy_search.app import create_agent_with_context
+                        agent = create_agent_with_context(
+                            st.session_state.project_context,
+                            st.session_state.user_id,
+                            'openai',
+                            ['search_tools']
+                        )
+                    
+                    # Create a prompt that will trigger the perplexity search
+                    prompt = (f"Please use the perplexity_search tool to search for: "
+                             f"'{query}' with focus area '{focus}'")
+                    
+                    result = agent.run_sync(prompt)
+                    
+                    st.markdown("### Results")
+                    st.markdown(str(result.output))
+                    
+                except Exception as e:
+                    st.error(f"Error: {str(e)}")
+        else:
+            st.warning("Please enter a search query")
+
+
+def render_database_tools_tab():
+    """Render database query tools interface"""
+    st.subheader("🗃️ Database Query Tools")
+    st.markdown("Query your database using natural language")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("#### Natural Language Query")
+        question = st.text_area(
+            "Ask about your database",
+            placeholder="How many conversations are there?",
+            key="db_question"
+        )
+        
+        if st.button("🔍 Query Database", type="primary"):
+            if question.strip():
+                with st.spinner("Querying database..."):
+                    try:
+                        # Use the AI agent to call the database query tool
+                        agent = st.session_state.get('agent_openai_', None)
+                        if not agent:
+                            from docy_search.app import create_agent_with_context
+                            agent = create_agent_with_context(
+                                st.session_state.project_context,
+                                st.session_state.user_id,
+                                'openai',
+                                ['search_tools']
+                            )
+                        
+                        # Create a prompt that will trigger the database query
+                        prompt = (f"Please use the natural_language_query tool "
+                                 f"to answer: '{question}'")
+                        
+                        result = agent.run_sync(prompt)
+                        
+                        st.markdown("### Query Results")
+                        st.code(str(result.output), language="json")
+                        
+                    except Exception as e:
+                        st.error(f"Error: {str(e)}")
+            else:
+                st.warning("Please enter a question")
+    
+    with col2:
+        st.markdown("#### Database Schema")
+        if st.button("📋 Show Database Schema"):
+            with st.spinner("Getting database schema..."):
+                try:
+                    # Use the AI agent to get database schema
+                    agent = st.session_state.get('agent_openai_', None)
+                    if not agent:
+                        from docy_search.app import create_agent_with_context
+                        agent = create_agent_with_context(
+                            st.session_state.project_context,
+                            st.session_state.user_id,
+                            'openai',
+                            ['search_tools']
+                        )
+                    
+                    prompt = "Please use the get_database_schema tool to show the database schema"
+                    
+                    result = agent.run_sync(prompt)
+                    
+                    st.markdown("### Database Schema")
+                    st.code(str(result.output), language="json")
+                    
+                except Exception as e:
+                    st.error(f"Error: {str(e)}")
+
+
+def render_code_analysis_tab():
+    """Render code analysis tools interface"""
+    st.subheader("📊 Repository Code Analysis")
+    st.markdown("Analyze any GitHub repository for code quality and structure")
+    
+    repo_url = st.text_input(
+        "Repository URL or Path",
+        placeholder="https://github.com/user/repo or /path/to/repo",
+        key="repo_url"
+    )
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        if st.button("🔍 Full Analysis", type="primary"):
+            if repo_url.strip():
+                with st.spinner("Analyzing repository..."):
+                    try:
+                        # Use the AI agent to call the code analysis tool
+                        agent = st.session_state.get('agent_openai_', None)
+                        if not agent:
+                            from docy_search.app import create_agent_with_context
+                            agent = create_agent_with_context(
+                                st.session_state.project_context,
+                                st.session_state.user_id,
+                                'openai',
+                                ['search_tools']
+                            )
+                        
+                        prompt = (f"Please use the analyze_repository tool "
+                                 f"to analyze this repository: {repo_url}")
+                        
+                        result = agent.run_sync(prompt)
+                        
+                        st.markdown("### Analysis Results")
+                        st.code(str(result.output), language="json")
+                        
+                    except Exception as e:
+                        st.error(f"Error: {str(e)}")
+            else:
+                st.warning("Please enter a repository URL or path")
+    
+    with col2:
+        if st.button("⚡ Quick Summary"):
+            if repo_url.strip():
+                with st.spinner("Getting repository summary..."):
+                    try:
+                        # Use the AI agent for quick summary
+                        agent = st.session_state.get('agent_openai_', None)
+                        if not agent:
+                            from docy_search.app import create_agent_with_context
+                            agent = create_agent_with_context(
+                                st.session_state.project_context,
+                                st.session_state.user_id,
+                                'openai',
+                                ['search_tools']
+                            )
+                        
+                        prompt = (f"Please use the analyze_repository tool "
+                                 f"to get a summary of: {repo_url}")
+                        
+                        result = agent.run_sync(prompt)
+                        
+                        st.markdown("### Repository Summary")
+                        st.code(str(result.output), language="json")
+                        
+                    except Exception as e:
+                        st.error(f"Error: {str(e)}")
+            else:
+                st.warning("Please enter a repository URL or path")
+
+
 def main():
     """Main Streamlit application"""
     # Initialize session state
@@ -204,7 +421,7 @@ def main():
     display_configuration_banner()
     
     # Create tab-based interface
-    tab1, tab2 = st.tabs(["💬 AI Assistant", "📊 Dashboard"])
+    tab1, tab2, tab3 = st.tabs(["💬 AI Assistant", "📊 Dashboard", "🔧 Advanced Tools"])
     
     with tab1:
         # Chat interface with memory component
@@ -251,6 +468,10 @@ def main():
         # Dashboard interface
         dashboard_component = DashboardComponent()
         dashboard_component.render()
+    
+    with tab3:
+        # Advanced Tools interface
+        render_advanced_tools_tab()
     
     # Footer
     display_footer()
