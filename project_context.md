@@ -1,58 +1,27 @@
-### Project Summary
+### Project Context
+- **Add Shared Devices and Services to a Workspace**  
+  Explains how to add devices to existing workspaces, assign a location (city), and manage device assignments. This ensures devices are tied to the correct workspace and physical location.  
+  [Add shared devices and services to a workspace (help.webex.com)](https://help.webex.com/article/1mqb9cb/Add-Shared-Devices-to-a-Workspace)
 
-We're building an automated sports betting analysis pipeline that searches the web daily for expert picks and sports statistics to provide one optimized pick per day. The system will aggregate data from multiple sources, perform comprehensive analysis using AI tools, and utilize machine learning to learn from past predictions and improve accuracy over time.
+- **Assign a Personal Board, Desk, or Room Device to a User**  
+  Step-by-step instructions to assign a device directly to a specific user, rather than keeping it as a shared workspace device. This is ideal for giving individual users control over devices in their city.  
+  [Assign a personal Board, Desk, or Room device to a user (help.webex.com)](https://help.webex.com/en-us/article/zfbu4j/Assign-a-personal-Board-Desk-or-Room-device-to-a-user)
 
-### Technical Requirements
+- **Locations in Control Hub**  
+  Details on how to create and manage locations (such as city offices) in Control Hub, allowing you to organize workspaces and devices by city for easier assignment and management.  
+  [Locations in Control Hub (help.webex.com)](https://help.webex.com/en-us/article/ajh6iy/Locations-in-Control-Hub)
 
-#### Data Collection:
+- **Device Configurations for Board, Desk, and Room Series Devices**  
+  Describes how to apply device configurations at the location or device level, enabling city-specific or user-specific settings once devices are assigned.  
+  [Device configurations for Board, Desk, and Room Series devices (help.webex.com)](https://help.webex.com/en-us/article/n5pqqcm/Device-configurations-for-Board,-Desk,-and-Room-Series-devices)
 
-- Daily web scraping for expert picks from sports betting analysts
-- Real-time sports statistics from various sources
-- News and sentiment analysis from sports media
-- Historical data for backtesting and model training
+These guides will help you assign users to devices in specific city workspaces and manage access and configuration accordingly.
 
-#### Cloud Infrastructure:
-
-- **Storage**: Cloud storage for raw data and processed datasets
-- **Analytics**: Data warehousing and statistical analysis platform
-- **ML Platform**: Machine learning services for training and deploying models
-- **Automation**: Scheduled functions for daily data collection pipeline
-
-#### Local Processing:
-
-- Statistical analysis and data processing
-- Machine learning models for prediction
-- Decision engine combining multiple data sources
-- Backtesting system for accuracy validation
-
-#### Key Features:
-
-- **Expert Opinion Analysis**: Aggregate and weight picks from multiple analysts
-- **Statistical Modeling**: Team/player performance, injuries, weather, historical trends
-- **AI Analysis**: Multiple AI tools for different aspects of game analysis
-- **Learning System**: Continuous improvement based on prediction outcomes
-- **Decision Engine**: Final pick based on comprehensive analysis
-
-### Architecture Flow
-
-1. **Daily Data Collection** → Automated scraping of expert picks and statistics
-2. **Data Processing** → Clean, normalize, and store collected data
-3. **Analysis** → Statistical analysis and ML predictions
-4. **Decision Engine** → Compare expert opinions vs stats for final pick
-5. **Learning Loop** → Track results and improve future predictions
-
-### Success Metrics
-
-- Prediction accuracy over time
-- Consistency of profitable recommendations
-- Model improvement through learning
-- Real-time processing capability
-
-### Next Steps
-
-1. Research and select cloud platform and tools
-2. Build web scraping infrastructure for data collection
-3. Develop initial analysis and ML frameworks
-4. Create decision engine for combining multiple inputs
-5. Implement learning system for continuous improvement
-6. Deploy automated
+[1] https://help.webex.com/article/1mqb9cb/Add-Shared-Devices-to-a-Workspace
+[2] https://www.reddit.com/r/ScreenConnect/comments/1kjexdl/giving_client_end_users_access_to_multiple/
+[3] https://learn.microsoft.com/en-us/partner-center/account-settings/permissions-overview
+[4] https://support.hpe.com/hpesc/public/docDisplay?docId=a00120892en_us&page=GUID-1F122521-0713-4822-A979-72828C99D1FA.html&docLocale=en_US
+[5] https://support.zoom.com/hc/en/article?id=zm_kb&sysparm_article=KB0057911
+[6] https://docs.fortinet.com/document/forticlient/7.4.0/workspace-one-deployment-guide/229419/creating-a-user-and-assigning-them-to-a-user-group
+[7] https://help.productive.io/en/articles/3815136-assigning-users-to-different-workplaces
+[8] https://docs.appspace.com/appspace/7.1/device-administration/basic/configure-user/managing-user-groups/
