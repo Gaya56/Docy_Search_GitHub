@@ -346,15 +346,18 @@ def setup_sidebar():
             "Notion API Key",
             type="password",
             value=st.session_state.get("notion_api_key", ""),
-            help="Enter your Notion API key (integration token)"
+            help="Enter your Notion API key (integration token)",
+            key="notion_api_key_input"
         )
         
         notion_page_id = st.text_input(
             "Default Notion Page ID",
             value=st.session_state.get("notion_page_id", ""),
-            help="Enter the default Notion page ID for operations"
+            help="Enter the default Notion page ID for operations",
+            key="notion_page_id_input"
         )
         
+        # Update session state when values change
         if notion_api_key:
             st.session_state.notion_api_key = notion_api_key
             # Set environment variable for the tool server to use

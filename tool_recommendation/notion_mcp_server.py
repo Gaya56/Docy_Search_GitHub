@@ -27,14 +27,17 @@ mcp = FastMCP(
 )
 
 # Initialize Notion API configuration
-notion_token = os.getenv("NOTION_API_KEY", "")
-notion_page_id = os.getenv("NOTION_PAGE_ID", "")
-notion_base_url = "https://api.notion.com/v1"
-notion_headers = {
-    "Authorization": f"Bearer {notion_token}",
-    "Notion-Version": "2022-06-28",
-    "Content-Type": "application/json"
-}
+def get_notion_config():
+    """Get current Notion configuration from environment variables"""
+    notion_token = os.getenv("NOTION_API_KEY", "")
+    notion_page_id = os.getenv("NOTION_PAGE_ID", "")
+    notion_base_url = "https://api.notion.com/v1"
+    notion_headers = {
+        "Authorization": f"Bearer {notion_token}",
+        "Notion-Version": "2022-06-28",
+        "Content-Type": "application/json"
+    }
+    return notion_token, notion_page_id, notion_base_url, notion_headers
 
 @mcp.tool()
 async def read_notion_page(page_id: str = "") -> str:
@@ -47,6 +50,9 @@ async def read_notion_page(page_id: str = "") -> str:
     activity_id = None
     
     try:
+        # Get current configuration
+        notion_token, notion_page_id, notion_base_url, notion_headers = get_notion_config()
+        
         # Start activity tracking
         if TRACKING_AVAILABLE:
             activity_id = await activity_tracker.start_activity(
