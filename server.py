@@ -75,38 +75,40 @@ class ActivityResponse(BaseModel):
     resource_usage: Dict[str, Any] = {}
     total_activities: int = 0
 
-# Available tools mapping
-AVAILABLE_TOOLS = {
-    # Main tool recommendation tools
-    "search_tools": search_tools,
-    "analyze_tools": analyze_tools,
-    "get_installation_guide": get_installation_guide,
-    "compare_tools": compare_tools,
-    
-    # Web search tools
-    "search_web": search_web,
-    
-    # GitHub tools
-    "search_github_repositories": search_github_repositories,
-    "get_repository_structure": get_repository_structure,
-    "get_file_from_repository": get_file_from_repository,
-    
-    # Code analysis tools
-    "analyze_repository": analyze_repository,
-    "quick_repo_summary": quick_repo_summary,
-    
-    # SQL tools
-    "natural_language_query": natural_language_query,
-    "get_database_schema": get_database_schema,
-    
-    # Perplexity search
-    "perplexity_search": perplexity_search,
-    
-    # Notion tools
-    "read_notion_page": read_notion_page,
-    "search_notion_page": search_notion_page,
-    "add_to_notion_page": add_to_notion_page,
+# Available tools mapping organized by MCP server
+MCP_SERVERS = {
+    "Tool Recommendation": {
+        "search_tools": search_tools,
+        "analyze_tools": analyze_tools,
+        "get_installation_guide": get_installation_guide,
+        "compare_tools": compare_tools,
+    },
+    "Web Search": {
+        "search_web": search_web,
+        "perplexity_search": perplexity_search,
+    },
+    "GitHub": {
+        "search_github_repositories": search_github_repositories,
+        "get_repository_structure": get_repository_structure,
+        "get_file_from_repository": get_file_from_repository,
+        "analyze_repository": analyze_repository,
+        "quick_repo_summary": quick_repo_summary,
+    },
+    "SQL Database": {
+        "natural_language_query": natural_language_query,
+        "get_database_schema": get_database_schema,
+    },
+    "Notion": {
+        "read_notion_page": read_notion_page,
+        "search_notion_page": search_notion_page,
+        "add_to_notion_page": add_to_notion_page,
+    },
 }
+
+# Flat tools mapping for backward compatibility
+AVAILABLE_TOOLS = {}
+for server_name, tools in MCP_SERVERS.items():
+    AVAILABLE_TOOLS.update(tools)
 
 @app.get("/")
 async def root():
@@ -124,17 +126,58 @@ async def health_check():
     """Health check endpoint for Docker."""
     return {"status": "healthy", "timestamp": "now"}
 
+@app.get("/mcp-servers")
+async def list_mcp_servers():
+    """List all available MCP servers."""
+    servers_info = {}
+    for server_name, tools in MCP_SERVERS.items():
+        servers_info[server_name] = {
+            "name": server_name,
+            "tool_count": len(tools),
+            "tools": list(tools.keys())
+        }
+    return {"servers": servers_info}
+
+@app.get("/mcp-servers/{server_name}/tools")
+async def get_server_tools(server_name: str):
+    """Get tools for a specific MCP server."""
+    if server_name not in MCP_SERVERS:
+        raise HTTPException(status_code=404, detail=f"MCP server '{server_name}' not found")
+    
+    tools = MCP_SERVERS[server_name]
+    tools_info = {}
+    for tool_name, tool_func in tools.items():
+        doc = getattr(tool_func, '__doc__', None)
+        if doc:
+            description = doc.split('\n')[0].strip()
+        else:
+            description = f"Tool for {tool_name.replace('_', ' ')}"
+        
+        tools_info[tool_name] = {
+            "name": tool_name,
+            "server": server_name,
+            "description": description
+        }
+    
+    return {"server": server_name, "tools": tools_info}
+
 @app.get("/tools")
 async def list_tools():
     """List all available tools."""
     tools_info = {}
-    for tool_name, mcp_server in AVAILABLE_TOOLS.items():
-        # Get tool information from MCP server
-        tools_info[tool_name] = {
-            "name": tool_name,
-            "server": mcp_server.name if hasattr(mcp_server, 'name') else "unknown",
-            "description": f"Tool for {tool_name.replace('_', ' ')}"
-        }
+    for server_name, tools in MCP_SERVERS.items():
+        for tool_name, tool_func in tools.items():
+            doc = getattr(tool_func, '__doc__', None)
+            if doc:
+                description = doc.split('\n')[0].strip()
+            else:
+                description = f"Tool for {tool_name.replace('_', ' ')}"
+            
+            tools_info[tool_name] = {
+                "name": tool_name,
+                "server": server_name,
+                "description": description
+            }
     return {"tools": tools_info}
 
 @app.post("/execute")
@@ -148,7 +191,7 @@ async def execute_tool(request: ToolRequest) -> ToolResponse:
             os.environ["NOTION_PAGE_ID"] = request.notion_page_id
         
         # Track the activity
-        activity_tracker.start_activity(
+        await activity_tracker.start_activity(
             f"execute_{request.tool_name}",
             {"tool": request.tool_name, "parameters": request.parameters}
         )
