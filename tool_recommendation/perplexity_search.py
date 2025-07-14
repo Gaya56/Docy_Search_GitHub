@@ -46,6 +46,26 @@ async def perplexity_search(
     activity_id = None
     
     try:
+        # Validate and sanitize inputs
+        if not query or not query.strip():
+            return "Error: Query cannot be empty"
+        
+        query = query.strip()
+        
+        # Ensure focus is not None and is a valid string
+        if not focus or not isinstance(focus, str):
+            focus = "general"
+        focus = focus.lower().strip()
+        
+        # Validate focus value
+        valid_focuses = ["general", "academic", "news", "coding", "business"]
+        if focus not in valid_focuses:
+            focus = "general"
+        
+        # Validate max_results
+        if not isinstance(max_results, int) or max_results < 1:
+            max_results = 5
+        max_results = min(max_results, 10)  # Cap at 10
         # Start activity tracking
         if TRACKING_AVAILABLE:
             query_preview = (query[:50] + "..." 
