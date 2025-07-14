@@ -17,10 +17,10 @@ class APISettings(BaseSettings):
     google_api_key: Optional[str] = Field(None, env="GOOGLE_API_KEY")
     brave_api_key: Optional[str] = Field(None, env="BRAVE_API_KEY")
     github_token: Optional[str] = Field(None, env="GITHUB_TOKEN")
-    deepseek_api_key: Optional[str] = Field(None, env="DEEPSEEK_API_KEY")
+    perplexity_api_key: Optional[str] = Field(None, env="PERPLEXITY_API_KEY")
     
-    # API endpoints
-    deepseek_base_url: str = Field("https://api.deepseek.com/v1", env="DEEPSEEK_BASE_URL")
+    # API endpoints (can be extended for additional services)
+    openai_base_url: str = Field("https://api.openai.com/v1", env="OPENAI_BASE_URL")
     
     @validator("openai_api_key", "brave_api_key", pre=True)
     def validate_required_keys(cls, v, field):
