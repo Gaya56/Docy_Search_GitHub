@@ -40,7 +40,6 @@ Activity Tracking → Resource Monitoring → Progress Updates → Completion St
 | **AI Analysis** | Intelligent tool evaluation | `mcp_server.py` (Gemini integration) |
 | **GitHub Integration** | Repository search and analysis | `github_mcp_server.py` |
 | **Code Analysis** | Repository quality assessment | `code_analyzer.py` |
-| **Python REPL** | Code execution and visualization | `python_tools.py` |
 | **Database Queries** | Natural language to SQL | `sql_tools.py` |
 | **Activity Tracking** | Real-time operation monitoring | `activity_tracker.py` |
 | **Web Search** | Brave Search API integration | `brave_search.py` |
@@ -60,7 +59,7 @@ Activity Tracking → Resource Monitoring → Progress Updates → Completion St
 ┌─────────────────────────────────────────┐
 │           Docker Container             │
 ├─────────────────────────────────────────┤
-│  FastAPI Server (Port 8000)           │
+│  FastAPI Server (Port 8947)           │
 │  ├── Unified MCP Endpoint             │
 │  ├── Health Check Endpoint            │
 │  ├── Activity Monitoring              │
@@ -125,7 +124,7 @@ Required for full functionality:
 ```python
 from client import ToolRecommendationClient
 
-client = ToolRecommendationClient("http://localhost:8000")
+client = ToolRecommendationClient("http://localhost:8947")
 result = client.search_tools("python web frameworks")
 st.write(result)
 ```
@@ -184,7 +183,7 @@ docker-compose build
 docker-compose up -d
 
 # Verify health
-curl http://localhost:8000/health
+curl http://localhost:8947/health
 ```
 
 ### 3. Integration with Your Streamlit App
@@ -199,7 +198,7 @@ cp streamlit_example.py /path/to/your/streamlit/app/
 
 # In your Streamlit app
 from client import StreamlitToolClient
-client = StreamlitToolClient("http://localhost:8000")
+client = StreamlitToolClient("http://localhost:8947")
 ```
 
 ## 🔒 Production Considerations

@@ -5,7 +5,7 @@ services:
     build: .
     container_name: tool-recommendation-system
     ports:
-      - "8853:8947"
+      - "8947:8947"
     environment:
       # API Keys (set these in your .env file)
       - BRAVE_API_KEY=${BRAVE_API_KEY}

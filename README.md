@@ -47,20 +47,20 @@ docker-compose up -d
 
 # Or using Docker directly
 docker build -t tool-recommendation .
-docker run -p 8000:8000 --env-file .env tool-recommendation
+docker run -p 8947:8947 --env-file .env tool-recommendation
 ```
 
 ### 4. Test the Service
 
 ```bash
 # Health check
-curl http://localhost:8000/health
+curl http://localhost:8947/health
 
 # List available tools
-curl http://localhost:8000/tools
+curl http://localhost:8947/tools
 
 # Search for tools
-curl -X POST http://localhost:8000/execute \
+curl -X POST http://localhost:8947/execute \
   -H "Content-Type: application/json" \
   -d '{"tool_name": "search_tools", "parameters": {"query": "web development"}}'
 ```
@@ -69,7 +69,7 @@ curl -X POST http://localhost:8000/execute \
 
 ### Base URL
 ```
-http://localhost:8000
+http://localhost:8947
 ```
 
 ### Endpoints
@@ -132,7 +132,7 @@ sys.path.append('path/to/tool_recommendation_container')
 from client import StreamlitToolClient
 
 # Initialize client
-client = StreamlitToolClient("http://localhost:8000")
+client = StreamlitToolClient("http://localhost:8947")
 
 # Check connection
 if not client.client.health_check():
@@ -154,7 +154,7 @@ if prompt := st.chat_input("What tools are you looking for?"):
 ```python
 from client import ToolRecommendationClient
 
-client = ToolRecommendationClient("http://localhost:8000")
+client = ToolRecommendationClient("http://localhost:8947")
 
 # Search for tools
 search_results = client.search_tools("machine learning frameworks", "ai")
@@ -194,7 +194,7 @@ code_result = client.execute_python("print('Hello from container!')")
 
 ```bash
 # Get current activity status
-curl http://localhost:8000/activity
+curl http://localhost:8947/activity
 ```
 
 Response includes:
@@ -207,10 +207,10 @@ Response includes:
 
 ```bash
 # Health check
-curl http://localhost:8000/health
+curl http://localhost:8947/health
 
 # Service info
-curl http://localhost:8000/
+curl http://localhost:8947/
 ```
 
 ### Logs
@@ -235,7 +235,7 @@ pip install -r requirements.txt
 python server.py
 
 # Or with uvicorn
-uvicorn server:app --host 0.0.0.0 --port 8000 --reload
+uvicorn server:app --host 0.0.0.0 --port 8947 --reload
 ```
 
 ### Testing
@@ -273,7 +273,7 @@ print(client.search_tools('web frameworks'))
 1. **"Tool Recommendation Server is not available"**
    - Check if container is running: `docker ps`
    - Check logs: `docker-compose logs`
-   - Verify port 8000 is not in use
+   - Verify port 8947 is not in use
 
 2. **"API Key not found" errors**
    - Check `.env` file has correct API keys
@@ -343,7 +343,7 @@ spec:
       - name: tool-recommendation
         image: tool-recommendation:latest
         ports:
-        - containerPort: 8000
+        - containerPort: 8947
         env:
         - name: BRAVE_API_KEY
           valueFrom:
