@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  tool-recommendation:
+    build: .
+    container_name: tool-recommendation-system
+    ports:
+      - "8000:8000"
+    environment:
+      # API Keys (set these in your .env file)
+      - BRAVE_API_KEY=${BRAVE_API_KEY}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - PERPLEXITY_API_KEY=${PERPLEXITY_API_KEY}
+      
+      # Database configuration
+      - DB_PATH=/app/data/tool_recommendations.db
+      - DB_BACKUP_ENABLED=true
+      
+      # Memory settings
+      - EMBEDDING_MODEL=text-embedding-3-small
+      - SIMILARITY_THRESHOLD=0.7
+      
+    volumes:
+      # Persist database and logs
+      - tool_data:/app/data
+      - ./logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  tool_data:
+    driver: local
