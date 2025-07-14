@@ -60,6 +60,8 @@ app.add_middleware(
 class ToolRequest(BaseModel):
     tool_name: str
     parameters: Dict[str, Any]
+    notion_api_key: Optional[str] = None
+    notion_page_id: Optional[str] = None
 
 class ToolResponse(BaseModel):
     success: bool
@@ -139,6 +141,12 @@ async def list_tools():
 async def execute_tool(request: ToolRequest) -> ToolResponse:
     """Execute a tool with the given parameters."""
     try:
+        # Set Notion credentials if provided
+        if request.notion_api_key:
+            os.environ["NOTION_API_KEY"] = request.notion_api_key
+        if request.notion_page_id:
+            os.environ["NOTION_PAGE_ID"] = request.notion_page_id
+        
         # Track the activity
         activity_tracker.start_activity(
             f"execute_{request.tool_name}",

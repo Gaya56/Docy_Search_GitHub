@@ -27,6 +27,12 @@ def initialize_session_state():
     
     if "openai_api_key" not in st.session_state:
         st.session_state.openai_api_key = ""
+    
+    if "notion_api_key" not in st.session_state:
+        st.session_state.notion_api_key = ""
+    
+    if "notion_page_id" not in st.session_state:
+        st.session_state.notion_page_id = ""
 
 
 def check_server_connection(server_url: str) -> bool:
@@ -56,6 +62,22 @@ def execute_tool_on_server(tool_name: str, parameters: Dict[str, Any], server_ur
             "tool_name": tool_name,
             "parameters": parameters
         }
+        
+        # Add Notion credentials for Notion tools
+        if tool_name.startswith('notion_') or 'notion' in tool_name.lower():
+            notion_api_key = st.session_state.get("notion_api_key")
+            notion_page_id = st.session_state.get("notion_page_id")
+            
+            if notion_api_key:
+                payload["notion_api_key"] = notion_api_key
+            
+            # If no page_id in parameters but we have a default one, use it
+            if notion_page_id and "page_id" not in parameters:
+                parameters["page_id"] = notion_page_id
+                payload["parameters"] = parameters
+            
+            if notion_page_id:
+                payload["notion_page_id"] = notion_page_id
         
         response = requests.post(
             f"{server_url}/execute",
@@ -131,6 +153,52 @@ def create_openai_function_definitions(available_tools: Dict[str, Any]) -> List[
                     }
                 },
                 "required": ["tool_name"]
+            }
+        },
+        "read_notion_page": {
+            "name": "read_notion_page",
+            "description": "Read content from a Notion page",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "page_id": {
+                        "type": "string",
+                        "description": "Notion page ID to read from"
+                    }
+                },
+                "required": ["page_id"]
+            }
+        },
+        "search_notion_page": {
+            "name": "search_notion_page",
+            "description": "Search for content within Notion pages",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {
+                        "type": "string",
+                        "description": "Search query to find in Notion"
+                    }
+                },
+                "required": ["query"]
+            }
+        },
+        "add_to_notion_page": {
+            "name": "add_to_notion_page",
+            "description": "Add content to a Notion page",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "page_id": {
+                        "type": "string",
+                        "description": "Notion page ID to add content to"
+                    },
+                    "content": {
+                        "type": "string",
+                        "description": "Content to add to the page"
+                    }
+                },
+                "required": ["page_id", "content"]
             }
         }
     }
@@ -265,6 +333,38 @@ def setup_sidebar():
                     st.session_state.server_status = "disconnected"
                     st.error("❌ Cannot connect to server")
         
+        # Notion Configuration
+        st.subheader("📝 Notion Configuration")
+        
+        notion_api_key = st.text_input(
+            "Notion API Key",
+            type="password",
+            value=st.session_state.get("notion_api_key", ""),
+            help="Enter your Notion API key (integration token)"
+        )
+        
+        notion_page_id = st.text_input(
+            "Default Notion Page ID",
+            value=st.session_state.get("notion_page_id", ""),
+            help="Enter the default Notion page ID for operations"
+        )
+        
+        if notion_api_key:
+            st.session_state.notion_api_key = notion_api_key
+            # Set environment variable for the tool server to use
+            os.environ["NOTION_API_KEY"] = notion_api_key
+            st.success("✅ Notion API Key Set")
+        else:
+            st.warning("⚠️ Notion API key not set (optional)")
+            
+        if notion_page_id:
+            st.session_state.notion_page_id = notion_page_id
+            # Set environment variable for the tool server to use
+            os.environ["NOTION_PAGE_ID"] = notion_page_id
+            st.success("✅ Notion Page ID Set")
+        else:
+            st.warning("⚠️ Notion page ID not set (optional)")
+        
         # Status indicators
         st.markdown("---")
         st.subheader("📊 Status")
@@ -278,6 +378,15 @@ def setup_sidebar():
             st.success(f"✅ Tools: Connected ({len(st.session_state.available_tools)} available)")
         else:
             st.error("❌ Tools: Not connected")
+            
+        # Notion status
+        if st.session_state.get("notion_api_key"):
+            if st.session_state.get("notion_page_id"):
+                st.success("✅ Notion: Fully configured")
+            else:
+                st.warning("⚠️ Notion: API key set, page ID missing")
+        else:
+            st.info("ℹ️ Notion: Not configured (optional)")
         
         if st.session_state.available_tools:
             with st.expander("🛠️ Available Tools"):
