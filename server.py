@@ -24,8 +24,8 @@ try:
     from tool_recommendation.mcp_server import search_tools, analyze_tools, get_installation_guide, compare_tools
     from tool_recommendation.brave_search import search_web
     from tool_recommendation.github_mcp_server import search_github_repositories, get_repository_structure, get_file_from_repository
-    from tool_recommendation.code_analyzer import analyze_repository, get_code_quality_metrics
-    from tool_recommendation.sql_tools import natural_language_query, execute_sql_query
+    from tool_recommendation.code_analyzer import analyze_repository, quick_repo_summary
+    from tool_recommendation.sql_tools import natural_language_query, get_database_schema
     from tool_recommendation.perplexity_search import perplexity_search
     from tool_recommendation.activity_tracker import activity_tracker
 except ImportError as e:
@@ -90,11 +90,11 @@ AVAILABLE_TOOLS = {
     
     # Code analysis tools
     "analyze_repository": analyze_repository,
-    "get_code_quality_metrics": get_code_quality_metrics,
+    "quick_repo_summary": quick_repo_summary,
     
     # SQL tools
     "natural_language_query": natural_language_query,
-    "execute_sql_query": execute_sql_query,
+    "get_database_schema": get_database_schema,
     
     # Perplexity search
     "perplexity_search": perplexity_search,
@@ -131,37 +131,28 @@ async def list_tools():
 
 @app.post("/execute")
 async def execute_tool(request: ToolRequest) -> ToolResponse:
-    """Execute a tool with given parameters."""
+    """Execute a tool with the given parameters."""
     try:
+        # Track the activity
+        activity_tracker.start_activity(
+            f"execute_{request.tool_name}",
+            {"tool": request.tool_name, "parameters": request.parameters}
+        )
+        
+        # Get the tool function
         tool_name = request.tool_name
-        parameters = request.parameters
+        parameters = request.parameters or {}
         
-        if tool_name not in AVAILABLE_TOOLS:
-            raise HTTPException(
-                status_code=400, 
-                detail=f"Tool '{tool_name}' not found. Available tools: {list(AVAILABLE_TOOLS.keys())}"
-            )
-        
-        tool_func = AVAILABLE_TOOLS[tool_name]
-        
-        # Execute the tool
-        if asyncio.iscoroutinefunction(tool_func):
-            result = await tool_func(**parameters)
-        else:
-            result = tool_func(**parameters)
-        
-        return ToolResponse(
-            success=True,
-            result=str(result),
-            activity_id=getattr(activity_tracker, '_activity_id', None)
-        )
-        
-    except Exception as e:
-        logger.error(f"Error executing tool '{request.tool_name}': {e}")
-        return ToolResponse(
-            success=False,
-            error=str(e)
-        )
+        # Import and call the function directly
+        if tool_name == "search_tools":
+            from tool_recommendation.mcp_server import search_tools
+            result = await search_tools(**parameters)
+        elif tool_name == "analyze_tools":
+            from tool_recommendation.mcp_server import analyze_tools
+            result = await analyze_tools(**parameters)
+        elif tool_name == "search_web":
+            from tool_recommendation.brave_search import search_web
+            result = await search_web(**parameters)
         elif tool_name == "search_github_repositories":
             from tool_recommendation.github_mcp_server import search_github_repositories
             result = await search_github_repositories(**parameters)
@@ -174,21 +165,15 @@ async def execute_tool(request: ToolRequest) -> ToolResponse:
         elif tool_name == "analyze_repository":
             from tool_recommendation.code_analyzer import analyze_repository
             result = await analyze_repository(**parameters)
-        elif tool_name == "get_code_quality_metrics":
-            from tool_recommendation.code_analyzer import get_code_quality_metrics
-            result = await get_code_quality_metrics(**parameters)
-        elif tool_name == "python_repl":
-            from tool_recommendation.python_tools import python_repl
-            result = await python_repl(**parameters)
-        elif tool_name == "data_visualization":
-            from tool_recommendation.python_tools import data_visualization
-            result = await data_visualization(**parameters)
+        elif tool_name == "quick_repo_summary":
+            from tool_recommendation.code_analyzer import quick_repo_summary
+            result = await quick_repo_summary(**parameters)
         elif tool_name == "natural_language_query":
             from tool_recommendation.sql_tools import natural_language_query
             result = await natural_language_query(**parameters)
-        elif tool_name == "execute_sql_query":
-            from tool_recommendation.sql_tools import execute_sql_query
-            result = await execute_sql_query(**parameters)
+        elif tool_name == "get_database_schema":
+            from tool_recommendation.sql_tools import get_database_schema
+            result = await get_database_schema(**parameters)
         elif tool_name == "perplexity_search":
             from tool_recommendation.perplexity_search import perplexity_search
             result = await perplexity_search(**parameters)
