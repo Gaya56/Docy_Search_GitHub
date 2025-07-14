@@ -13,3 +13,4 @@ tiktoken
 pydantic-settings>=2.0.0
 uvicorn
 fastapi
+streamlit
