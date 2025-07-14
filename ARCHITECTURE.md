@@ -1,261 +1,184 @@
-# Tool Recommendation System - Complete Analysis & Containerization
+# AI Tool Recommendation System Architecture
 
 ## 🎯 System Overview
 
-The `tool_recommendation` directory contains a sophisticated **AI-powered tool discovery and analysis system** built with the **FastMCP (Model Context Protocol)** framework. It's designed as a collection of microservices that can discover, analyze, and provide installation guidance for development tools.
+A containerized AI-powered tool discovery platform with OpenAI GPT-4 integration and Notion document management.
 
-## 🏗️ Architecture Deep Dive
+## 🏗️ Architecture
 
 ### Core Components
 
-1. **MCP-Based Microservices**
-   - Each file is an independent MCP server
-   - Uses FastMCP for standardized tool registration
-   - Activity tracking across all operations
-   - Graceful error handling and fallbacks
-
-2. **AI Integration**
-   - **Google Gemini** for tool analysis and recommendations
-   - **OpenAI** for embeddings and memory systems
-   - **Perplexity AI** for focused search results
-
-3. **External APIs**
-   - **Brave Search** for web search capabilities
-   - **GitHub API** for repository analysis
-   - **Multiple AI providers** for redundancy
-
-### Data Flow
-
-```
-User Query → Tool Search → AI Analysis → Recommendation → Installation Guide
-     ↓           ↓            ↓             ↓              ↓
-Activity Tracking → Resource Monitoring → Progress Updates → Completion Status
-```
-
-### Key Features
-
-| Feature | Description | Files Involved |
-|---------|-------------|----------------|
-| **Tool Discovery** | Search and rank development tools | `mcp_server.py`, `brave_search.py` |
-| **AI Analysis** | Intelligent tool evaluation | `mcp_server.py` (Gemini integration) |
-| **GitHub Integration** | Repository search and analysis | `github_mcp_server.py` |
-| **Code Analysis** | Repository quality assessment | `code_analyzer.py` |
-| **Database Queries** | Natural language to SQL | `sql_tools.py` |
-| **Activity Tracking** | Real-time operation monitoring | `activity_tracker.py` |
-| **Web Search** | Brave Search API integration | `brave_search.py` |
-
-## 📦 Containerization Strategy
-
-### Why Docker?
-
-1. **Isolation**: Self-contained environment with all dependencies
-2. **Portability**: Runs anywhere Docker is available
-3. **Scalability**: Easy to deploy multiple instances
-4. **Integration**: Simple API interface for any application
-
-### Container Architecture
-
 ```
 ┌─────────────────────────────────────────┐
-│           Docker Container             │
+│        Streamlit Frontend              │
+│        (OpenAI GPT-4 Chatbot)          │
+│        Port: 8501                      │
+└─────────────────────────────────────────┘
+                    │ HTTP API
+┌─────────────────────────────────────────┐
+│        Docker Container                │
+│        FastAPI Server - Port: 8947     │
 ├─────────────────────────────────────────┤
-│  FastAPI Server (Port 8947)           │
-│  ├── Unified MCP Endpoint             │
-│  ├── Health Check Endpoint            │
-│  ├── Activity Monitoring              │
-│  └── Tool Execution Engine            │
-├─────────────────────────────────────────┤
-│  Tool Recommendation System           │
-│  ├── search_tools                     │
-│  ├── analyze_tools                    │
-│  ├── github_repositories              │
-│  ├── code_analyzer                    │
-│  ├── python_repl                      │
-│  └── sql_tools                        │
+│  Tool Recommendation System (MCP)      │
+│  ├── search_tools                      │
+│  ├── github_repositories               │
+│  ├── notion_integration               │
+│  ├── web_search (Brave)               │
+│  ├── perplexity_search                │
+│  └── activity_tracker                 │
 ├─────────────────────────────────────────┤
 │  External API Integrations            │
-│  ├── Brave Search API                 │
-│  ├── Google Gemini API                │
+│  ├── OpenAI API (GPT-4)               │
+│  ├── Notion API                       │
 │  ├── GitHub API                       │
-│  ├── OpenAI API                       │
+│  ├── Brave Search API                 │
 │  └── Perplexity API                   │
 └─────────────────────────────────────────┘
 ```
 
-## 🚀 Implementation Details
+### Data Flow
 
-### Files Created for Containerization
-
-1. **`Dockerfile`** - Multi-stage container build
-2. **`docker-compose.yml`** - Container orchestration
-3. **`server.py`** - Unified FastAPI server
-4. **`client.py`** - Python client library
-5. **`requirements.txt`** - Python dependencies
-6. **`.env.example`** - Environment configuration
-7. **`setup.sh`** - Automated setup script
-8. **`Makefile`** - Development commands
-9. **`streamlit_example.py`** - Complete integration example
-10. **`README.md`** - Comprehensive documentation
-
-### API Endpoints
-
-| Endpoint | Method | Purpose |
-|----------|--------|---------|
-| `/` | GET | Service info and status |
-| `/health` | GET | Container health check |
-| `/tools` | GET | List available tools |
-| `/execute` | POST | Execute any tool |
-| `/activity` | GET | Monitor operations |
-| `/streamlit-integration` | POST | Optimized for Streamlit |
-
-### Environment Variables
-
-Required for full functionality:
-- `BRAVE_API_KEY` - Web search (required)
-- `GOOGLE_API_KEY` - AI analysis (required)
-- `GITHUB_TOKEN` - Repository access (recommended)
-- `OPENAI_API_KEY` - Embeddings (optional)
-- `PERPLEXITY_API_KEY` - Enhanced search (optional)
-
-## 🔌 Integration with Streamlit
-
-### Simple Integration (5 minutes)
-
-```python
-from client import ToolRecommendationClient
-
-client = ToolRecommendationClient("http://localhost:8947")
-result = client.search_tools("python web frameworks")
-st.write(result)
+```
+User Query → OpenAI GPT-4 → Tool Selection → MCP Server → External APIs → Response
 ```
 
-### Advanced Integration (Full Chatbot)
+## 📦 Container Architecture
 
-The `streamlit_example.py` provides a complete chatbot with:
-- Server connection management
-- Real-time activity monitoring
-- Tool categorization
-- Progress tracking
-- Quick action buttons
-- Formatted responses
-
-### Integration Features
-
-1. **Health Monitoring** - Automatic server connection checks
-2. **Progress Tracking** - Real-time operation status
-3. **Error Handling** - Graceful degradation when services unavailable
-4. **Activity Logs** - Detailed operation monitoring
-5. **Quick Actions** - Pre-built common queries
-6. **Responsive UI** - Clean, professional interface
-
-## 🛠️ Setup Instructions
-
-### 1. Quick Start (Using Setup Script)
-
-```bash
-# Run the setup script
-chmod +x setup.sh
-./setup.sh
-
-# Configure API keys
-cp .env.example .env
-# Edit .env with your API keys
-
-# Build and run
-make build
-make run
-
-# Test functionality
-make test
+### Files Structure
+```
+Docy_Search_GitHub/
+├── 🎨 Frontend
+│   └── app.py                 # Streamlit UI with OpenAI integration
+├── 🐳 Backend Container
+│   ├── server.py              # FastAPI server (Port: 8947)
+│   ├── Dockerfile             # Container definition
+│   └── docker-compose.yml     # Orchestration
+├── 🛠️ MCP Tools
+│   └── tool_recommendation/
+│       ├── mcp_server.py      # Core tool search
+│       ├── notion_mcp_server.py # Notion integration
+│       ├── github_mcp_server.py # GitHub tools
+│       ├── brave_search.py    # Web search
+│       ├── perplexity_search.py # AI search
+│       └── activity_tracker.py # Usage monitoring
+└── 🔧 Configuration
+    ├── requirements.txt       # Dependencies
+    ├── Makefile              # Build commands
+    └── .env.example          # Environment template
 ```
 
-### 2. Manual Setup
+## 🚀 Deployment Commands
 
+### Quick Start
 ```bash
-# Copy tool recommendation files
-cp -r ../docy_search/tool_recommendation/ ./tool_recommendation/
-cp -r ../config/ ./config/
+# Build and run Docker container
+make build && make run
 
+# Start Streamlit UI
+source .venv/bin/activate
+streamlit run app.py
+```
+
+### Manual Docker
+```bash
 # Build container
 docker-compose build
 
 # Start services
 docker-compose up -d
 
-# Verify health
+# Check health
 curl http://localhost:8947/health
+
+# View logs
+docker-compose logs -f
+
+# Stop services
+docker-compose down
 ```
 
-### 3. Integration with Your Streamlit App
+## 🔌 API Endpoints
 
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/` | GET | Service information |
+| `/health` | GET | Health check |
+| `/tools` | GET | List available tools |
+| `/execute` | POST | Execute tool with parameters |
+| `/activity` | GET | Monitor operations |
+
+### Example Usage
 ```bash
-# Install client dependencies
-pip install requests streamlit
-
-# Copy client files
-cp client.py /path/to/your/streamlit/app/
-cp streamlit_example.py /path/to/your/streamlit/app/
-
-# In your Streamlit app
-from client import StreamlitToolClient
-client = StreamlitToolClient("http://localhost:8947")
+# Test tool execution
+curl -X POST http://localhost:8947/execute \
+  -H "Content-Type: application/json" \
+  -d '{
+    "tool_name": "search_tools",
+    "parameters": {"query": "python web frameworks"}
+  }'
 ```
 
-## 🔒 Production Considerations
+## 🧠 OpenAI GPT-4 Integration
 
-### Security
-- API keys stored in environment variables
-- SQL injection protection (read-only queries)
-- Container network isolation
-- Resource limits in production
+### Intelligent Tool Selection
+- GPT-4 analyzes user queries
+- Automatically selects appropriate tools
+- Dynamically passes parameters
+- Formats responses for readability
 
-### Performance
-- Response caching for repeated queries
-- Async operations where possible
-- Resource monitoring and limits
-- Health checks for auto-recovery
+### Function Calling
+```python
+# GPT-4 decides which tool to use
+tools = [
+    {
+        "name": "search_tools",
+        "description": "Search for development tools",
+        "parameters": {...}
+    },
+    {
+        "name": "read_notion_page", 
+        "description": "Read Notion page content",
+        "parameters": {...}
+    }
+]
+```
 
-### Monitoring
-- Real-time activity tracking
-- API usage monitoring
-- Error logging and alerting
-- Performance metrics
+## � Notion Integration
 
-### Scaling
-- Horizontal scaling with load balancer
-- Database persistence for memory
-- API rate limiting
-- Container orchestration (K8s)
+### Dynamic Credentials
+- API keys passed securely per request
+- Environment variables set dynamically
+- Optional default page ID configuration
 
-## 🎉 Benefits of This Approach
+### Available Functions
+- `read_notion_page` - Access page content
+- `search_notion_page` - Search documents  
+- `add_to_notion_page` - Add content to pages
 
-### For You
-1. **Plug & Play** - Drop into any Python application
-2. **Zero Setup** - Everything containerized and ready
-3. **Powerful Features** - Full AI-powered tool discovery
-4. **Easy Integration** - Simple REST API
-5. **Scalable** - Run multiple instances
+## 🔧 Environment Configuration
 
-### For Users
-1. **Intelligent Recommendations** - AI-powered analysis
-2. **Comprehensive Search** - Web + GitHub + AI search
-3. **Installation Guides** - Step-by-step instructions
-4. **Code Execution** - Test tools directly
-5. **Real-time Feedback** - Progress tracking
+### Required
+```bash
+OPENAI_API_KEY=your_openai_key_here
+```
 
-### Technical Advantages
-1. **Microservices Architecture** - Modular and maintainable
-2. **Standardized Protocol** - MCP for tool communication
-3. **Fault Tolerance** - Graceful fallbacks
-4. **Monitoring** - Complete activity tracking
-5. **Documentation** - Comprehensive guides and examples
+### Optional (Enhanced Features)
+```bash
+BRAVE_API_KEY=your_brave_key
+PERPLEXITY_API_KEY=your_perplexity_key
+GITHUB_TOKEN=your_github_token
+NOTION_API_KEY=your_notion_key
+NOTION_PAGE_ID=your_default_page_id
+```
 
-## 🚀 Next Steps
+## 🎯 Key Benefits
 
-1. **Set up the container** using the provided setup script
-2. **Configure your API keys** in the `.env` file
-3. **Test the functionality** with the provided test scripts
-4. **Integrate with your Streamlit app** using the example code
-5. **Customize as needed** for your specific use case
+1. **AI-Driven**: OpenAI GPT-4 for intelligent interactions
+2. **Containerized**: Easy deployment and scaling
+3. **Modular**: MCP-based tool architecture
+4. **Integrated**: Seamless Notion document management
+5. **Extensible**: Easy to add new tools and APIs
 
-The system is designed to be production-ready out of the box while remaining flexible for customization and extension.
+---
+
+**Ready for production deployment with minimal configuration required**

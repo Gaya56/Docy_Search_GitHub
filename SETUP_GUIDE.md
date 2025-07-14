@@ -1,253 +1,175 @@
-# 🚀 Docy Search GitHub - Complete Setup Guide
+# 🚀 Quick Setup Guide
 
-## 📋 **Analysis Summary**
+## 📋 System Overview
 
-✅ **Architecture Understanding**: Complete
-✅ **Code Consistency Check**: Fixed port inconsistencies and removed broken references
-✅ **Tool Integration**: All references to DeepSeek removed, ports standardized
-✅ **Docker Configuration**: Validated and corrected
-
----
-
-## 🔧 **Issues Fixed**
-
-### 1. **Port Standardization** ✅
-- **Fixed**: Port inconsistency between Docker (8853→8947 mapping), server (8947), and documentation (8000)
-- **Solution**: Standardized all configurations to use port **8947**
-- **Files Updated**: 
-  - `docker-compose.yml`: Changed port mapping from `8853:8947` → `8947:8947`
-  - `README.md`: Updated all port references from 8000 → 8947
-  - `ARCHITECTURE.md`: Updated port references from 8000 → 8947
-
-### 2. **Documentation Cleanup** ✅
-- **Fixed**: Removed reference to non-existent `python_tools.py` 
-- **Solution**: Updated ARCHITECTURE.md to remove the Python REPL feature that doesn't exist
-
-### 3. **Dependencies** ✅
-- **Fixed**: Added missing Streamlit dependency
-- **Solution**: Added `streamlit` to `requirements.txt`
-
-### 4. **Configuration Consistency** ✅
-- **Verified**: All import statements and module references are correct
-- **Verified**: Environment variables properly configured
-- **Verified**: Docker build process working
+An AI-powered tool recommendation system with Notion integration, featuring:
+- **OpenAI GPT-4** for intelligent tool selection
+- **Notion Integration** for document management
+- **GitHub, Web Search, and Database tools**
+- **Streamlit UI** with Docker backend
 
 ---
 
-## 🏗️ **Project Architecture**
+## ⚡ Quick Start (5 minutes)
 
-```
-Docy_Search_GitHub/
-├── 🐳 Docker Configuration
-│   ├── Dockerfile                 # Multi-stage container build
-│   ├── docker-compose.yml         # Container orchestration (Port: 8947)
-│   └── requirements.txt           # Python dependencies + streamlit
-├── 🛠️ Core Application
-│   ├── server.py                  # Unified FastAPI server (Port: 8947)
-│   ├── client.py                  # Python client library
-│   └── streamlit_example.py       # Complete integration example
-├── 🧠 Tool Recommendation System
-│   └── tool_recommendation/
-│       ├── mcp_server.py          # Main tool search & analysis
-│       ├── brave_search.py        # Web search integration
-│       ├── github_mcp_server.py   # GitHub API integration
-│       ├── code_analyzer.py       # Repository analysis
-│       ├── sql_tools.py           # Database query tools
-│       ├── perplexity_search.py   # AI-powered search
-│       └── activity_tracker.py    # Operation monitoring
-├── ⚙️ Configuration
-│   ├── config/                    # Settings management
-│   ├── .env                       # Environment variables
-│   └── .env.example               # Template configuration
-└── 📚 Documentation
-    ├── README.md                  # Usage instructions
-    ├── ARCHITECTURE.md            # System overview
-    └── SETUP_GUIDE.md             # This file
-```
-
----
-
-## 🚀 **Quick Start Instructions**
-
-### **Prerequisites**
-- Docker & Docker Compose installed
-- API keys configured in `.env` file
-
-### **1. Environment Setup**
+### 1. Prerequisites
 ```bash
-# Copy and configure environment variables
+# Check requirements
+docker --version
+python --version  # 3.8+
+```
+
+### 2. Setup
+```bash
+# Clone and setup environment
+git clone https://github.com/Gaya56/Docy_Search_GitHub.git
+cd Docy_Search_GitHub
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+
+# Configure API keys
 cp .env.example .env
-# Edit .env with your API keys
+# Edit .env with your OpenAI API key (required)
 ```
 
-### **2. Start with Docker Compose** (Recommended)
+### 3. Start Services
 ```bash
-# Build and start the container
+# Terminal 1: Start Docker backend
+make build && make run
+
+# Terminal 2: Start Streamlit UI
+source .venv/bin/activate
+streamlit run app.py
+```
+
+### 4. Access
+- **Web UI**: http://localhost:8501
+- **API**: http://localhost:8947
+
+---
+
+## � Essential Commands
+
+### Docker Management
+```bash
+# Build and start
+make build && make run
+
+# Alternative Docker commands
+docker-compose build
 docker-compose up -d
 
-# Check container status
+# Check status
+make health
 docker-compose ps
 
 # View logs
 docker-compose logs -f
+
+# Stop services
+make stop
+docker-compose down
 ```
 
-### **3. Alternative: Direct Docker**
+### Development
 ```bash
-# Build the image
-docker build -t tool-recommendation .
+# Activate environment
+source .venv/bin/activate
 
-# Run the container
-docker run -p 8947:8947 --env-file .env tool-recommendation
-```
+# Start Streamlit
+streamlit run app.py
 
-### **4. Verify Installation**
-```bash
-# Health check
-curl http://localhost:8947/health
-
-# List available tools
-curl http://localhost:8947/tools
-
-# Test tool execution
-curl -X POST http://localhost:8947/execute \
-  -H "Content-Type: application/json" \
-  -d '{"tool_name": "search_tools", "parameters": {"query": "python testing frameworks"}}'
-```
-
----
-
-## 🎯 **Tool Integration Guide**
-
-### **Available Tools**
-| Tool | Function | Description |
-|------|----------|-------------|
-| `search_tools` | Tool discovery | Search and rank development tools |
-| `analyze_tools` | AI analysis | Intelligent tool evaluation |
-| `search_web` | Web search | Brave Search API integration |
-| `search_github_repositories` | GitHub search | Find repositories by criteria |
-| `get_repository_structure` | Repo analysis | Get repository file structure |
-| `analyze_repository` | Code analysis | Repository quality assessment |
-| `natural_language_query` | Database queries | Natural language to SQL |
-| `perplexity_search` | AI search | Focused search results |
-
-### **Using the Python Client**
-```python
-from client import ToolRecommendationClient
-
-# Initialize client
-client = ToolRecommendationClient("http://localhost:8947")
-
-# Check connection
-if client.health_check():
-    print("✅ Connected to Tool Recommendation System")
-
-# Search for tools
-result = client.search_tools("python testing frameworks", category="testing")
-print(result)
-
-# Analyze tools with AI
-analysis = client.analyze_tools(result, "Need lightweight testing for microservices")
-print(analysis)
-```
-
-### **Streamlit Integration**
-```bash
-# Run the example Streamlit app
-streamlit run streamlit_example.py
-```
-
----
-
-## 🔧 **Development Setup**
-
-### **Local Development** (Without Docker)
-```bash
-# Install dependencies
-pip install -r requirements.txt
-
-# Set environment variables
-export $(cat .env | xargs)
-
-# Run the server
-python server.py
-
-# Or with uvicorn for development
-uvicorn server:app --host 0.0.0.0 --port 8947 --reload
-```
-
-### **Testing Configuration**
-```bash
-# Test imports
-python -c "from tool_recommendation import activity_tracker; print('✅ All imports working')"
-
-# Test server startup
+# Test API
 curl http://localhost:8947/health
 ```
 
 ---
 
-## 🌐 **API Endpoints**
+## 🔑 Required Configuration
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/` | GET | Service information |
-| `/health` | GET | Health check for Docker |
-| `/tools` | GET | List available tools |
-| `/execute` | POST | Execute a tool |
-| `/activity` | GET | Activity status |
-| `/streamlit-integration` | POST | Streamlit-optimized execution |
-
----
-
-## 🔑 **Required API Keys**
-
-Add these to your `.env` file:
-
+### Minimal Setup (OpenAI only)
 ```bash
-# Required
-BRAVE_API_KEY=your_brave_api_key_here
-GOOGLE_API_KEY=your_google_api_key_here
+# .env file
+OPENAI_API_KEY=your_openai_key_here
+```
 
-# Optional but recommended  
-GITHUB_TOKEN=your_github_token_here
-OPENAI_API_KEY=your_openai_api_key_here
-PERPLEXITY_API_KEY=your_perplexity_api_key_here
+### Full Features (Optional)
+```bash
+# .env file
+OPENAI_API_KEY=your_openai_key_here
+BRAVE_API_KEY=your_brave_key
+PERPLEXITY_API_KEY=your_perplexity_key
+GITHUB_TOKEN=your_github_token
+NOTION_API_KEY=your_notion_key
+NOTION_PAGE_ID=your_default_page_id
 ```
 
 ---
 
-## 🐛 **Troubleshooting**
+## 🛠️ Available Tools
 
-### Common Issues:
-1. **Port conflicts**: Ensure port 8947 is available
-2. **API key errors**: Verify all required keys are set in `.env`
-3. **Docker build fails**: Check Docker daemon is running
-4. **Import errors**: Ensure all dependencies installed with `pip install -r requirements.txt`
+| Tool | Description |
+|------|-------------|
+| `search_tools` | Find development tools |
+| `search_github_repositories` | Search GitHub repos |
+| `search_web` | Web search via Brave |
+| `perplexity_search` | AI-powered search |
+| `read_notion_page` | Read Notion content |
+| `search_notion_page` | Search Notion docs |
+| `add_to_notion_page` | Add to Notion |
 
-### Health Checks:
+---
+
+## 🐛 Troubleshooting
+
+### Common Issues
 ```bash
-# Container health
+# Port conflicts
+netstat -tulpn | grep 8947
+netstat -tulpn | grep 8501
+
+# Docker issues
+docker system prune -f
+docker-compose down --volumes
+
+# Python environment
+pip install -r requirements.txt --force-reinstall
+```
+
+### Health Checks
+```bash
+# Container status
 docker-compose ps
 
-# Service health
+# API health
 curl http://localhost:8947/health
 
-# Tool availability
+# Available tools
 curl http://localhost:8947/tools
 ```
 
 ---
 
-## ✅ **Next Steps**
+## 📁 Project Structure
 
-1. **✅ COMPLETED**: Architecture analysis and consistency fixes
-2. **✅ COMPLETED**: Port standardization (8947)
-3. **✅ COMPLETED**: Documentation updates
-4. **✅ READY**: Docker deployment
-5. **🎯 NEXT**: Run `docker-compose up -d`
-6. **🎯 NEXT**: Launch Streamlit interface with `streamlit run streamlit_example.py`
+```
+├── app.py                 # Streamlit UI
+├── server.py              # FastAPI backend
+├── tool_recommendation/   # MCP tools
+├── docker-compose.yml     # Docker config
+├── Makefile              # Commands
+└── requirements.txt       # Dependencies
+```
 
 ---
 
-**🎉 The system is now ready for deployment and testing!**
+## ✅ Success Checklist
+
+- [ ] Docker container running on port 8947
+- [ ] Streamlit UI accessible on port 8501
+- [ ] OpenAI API key configured
+- [ ] Health check returns `{"status":"healthy"}`
+- [ ] Tools list shows available functions
+
+**🎉 You're ready to start using the AI tool assistant!**
