@@ -250,7 +250,7 @@ def main():
     uvicorn.run(
         "server:app",
         host="0.0.0.0",
-        port=8888,
+        port=8947,
         reload=False,
         log_level="info"
     )

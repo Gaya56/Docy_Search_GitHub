@@ -1,12 +1,15 @@
 """
-AI Tool Assistant - Streamlit Application
-Select a tool from the sidebar, then ask questions to execute that specific tool.
+AI Tool Assistant - OpenAI Powered Chatbot
+An intelligent chatbot that uses OpenAI to understand user queries and execute the appropriate tools.
 """
 
 import streamlit as st
 import requests
 import json
-from typing import Dict, Any
+import os
+from typing import Dict, Any, List
+from openai import OpenAI
+
 
 def initialize_session_state():
     """Initialize session state variables."""
@@ -19,8 +22,11 @@ def initialize_session_state():
     if "available_tools" not in st.session_state:
         st.session_state.available_tools = {}
     
-    if "selected_tool" not in st.session_state:
-        st.session_state.selected_tool = None
+    if "openai_client" not in st.session_state:
+        st.session_state.openai_client = None
+    
+    if "openai_api_key" not in st.session_state:
+        st.session_state.openai_api_key = ""
 
 
 def check_server_connection(server_url: str) -> bool:
@@ -43,215 +49,254 @@ def get_available_tools(server_url: str) -> Dict[str, Any]:
     return {}
 
 
-def execute_selected_tool(tool_name: str, user_input: str, server_url: str) -> str:
-    """Execute the selected tool with user input."""
+def execute_tool_on_server(tool_name: str, parameters: Dict[str, Any], server_url: str) -> str:
+    """Execute a tool on the server with given parameters."""
     try:
-        # Map user input to appropriate tool parameters
-        tool_params = map_input_to_tool_params(tool_name, user_input)
-        
         payload = {
             "tool_name": tool_name,
-            "parameters": tool_params
+            "parameters": parameters
         }
         
         response = requests.post(
             f"{server_url}/execute",
             json=payload,
-            timeout=30
+            timeout=60
         )
         
         if response.status_code == 200:
             result = response.json()
             return result.get("result", "No result returned")
         else:
-            return f"❌ Error executing tool: {response.status_code} - {response.text}"
+            return f"Error executing tool: {response.status_code} - {response.text}"
             
     except Exception as e:
-        return f"❌ Error: {str(e)}"
+        return f"Error: {str(e)}"
 
 
-def map_input_to_tool_params(tool_name: str, user_input: str) -> Dict[str, Any]:
-    """Map user input to appropriate tool parameters based on the tool."""
+def create_openai_function_definitions(available_tools: Dict[str, Any]) -> List[Dict]:
+    """Create OpenAI function definitions from available tools."""
     
-    # Define parameter mappings for each tool
-    tool_param_map = {
-        "search_tools": {"query": user_input},
-        "analyze_tools": {"tools": user_input},
-        "compare_tools": {"tools": user_input.split(",") if "," in user_input else [user_input]},
-        "get_installation_guide": {"tool_name": user_input},
-        "search_web": {"query": user_input},
-        "search_github_repositories": {"query": user_input},
-        "get_repository_structure": {"repo_url": user_input},
-        "analyze_repository": {"repo_url": user_input},
-        "quick_repo_summary": {"repo_url": user_input},
-        "get_file_from_repository": {"repo_url": user_input.split()[0] if " " in user_input else user_input,
-                                    "file_path": user_input.split()[1] if " " in user_input else ""},
-        "perplexity_search": {"query": user_input},
-        "natural_language_query": {"query": user_input},
-        "get_database_schema": {}  # No parameters needed
+    function_definitions = {
+        "search_tools": {
+            "name": "search_tools",
+            "description": "Search for development tools and frameworks based on a query",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {
+                        "type": "string",
+                        "description": "The search query for tools"
+                    }
+                },
+                "required": ["query"]
+            }
+        },
+        "analyze_tools": {
+            "name": "analyze_tools",
+            "description": "Analyze specific tools or frameworks",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "tools": {
+                        "type": "string",
+                        "description": "Tools to analyze"
+                    }
+                },
+                "required": ["tools"]
+            }
+        },
+        "quick_repo_summary": {
+            "name": "quick_repo_summary",
+            "description": "Get a quick summary of a GitHub repository",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "repo_url": {
+                        "type": "string",
+                        "description": "GitHub repository URL"
+                    }
+                },
+                "required": ["repo_url"]
+            }
+        },
+        "get_installation_guide": {
+            "name": "get_installation_guide",
+            "description": "Get installation instructions for a tool",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "tool_name": {
+                        "type": "string",
+                        "description": "Name of the tool"
+                    }
+                },
+                "required": ["tool_name"]
+            }
+        }
     }
     
-    return tool_param_map.get(tool_name, {"input": user_input})
+    return [func_def for tool_name, func_def in function_definitions.items() 
+            if tool_name in available_tools]
+
+
+def chat_with_openai(user_message: str, available_tools: Dict[str, Any], openai_client) -> str:
+    """Chat with OpenAI and let it decide which tools to use."""
+    try:
+        functions = create_openai_function_definitions(available_tools)
+        
+        system_message = """You are an AI assistant that helps users with development tools and technology questions.
+
+When a user asks a question:
+1. Analyze what they're asking for
+2. Choose the most appropriate tool to answer their question
+3. Call the tool with appropriate parameters
+4. Provide a helpful response based on the tool results
+
+Available tools:
+- search_tools: Find development tools and frameworks
+- analyze_tools: Get detailed analysis of specific tools
+- quick_repo_summary: Get repo overview
+- get_installation_guide: Get installation instructions"""
+
+        messages = [
+            {"role": "system", "content": system_message},
+            {"role": "user", "content": user_message}
+        ]
+        
+        response = openai_client.chat.completions.create(
+            model="gpt-4",
+            messages=messages,
+            tools=[{"type": "function", "function": func} for func in functions],
+            tool_choice="auto",
+            temperature=0.7
+        )
+        
+        message = response.choices[0].message
+        
+        if message.tool_calls:
+            tool_call = message.tool_calls[0]
+            function_name = tool_call.function.name
+            function_args = json.loads(tool_call.function.arguments)
+            
+            # Execute the tool on our server
+            tool_result = execute_tool_on_server(function_name, function_args, "http://localhost:8947")
+            
+            # Add assistant message with tool call
+            messages.append({
+                "role": "assistant", 
+                "content": "",  # Always use empty string instead of None
+                "tool_calls": [
+                    {
+                        "id": tool_call.id,
+                        "type": "function",
+                        "function": {
+                            "name": function_name,
+                            "arguments": tool_call.function.arguments
+                        }
+                    }
+                ]
+            })
+            
+            # Add tool result
+            messages.append({
+                "role": "tool",
+                "tool_call_id": tool_call.id,
+                "content": tool_result
+            })
+            
+            # Get final response
+            final_response = openai_client.chat.completions.create(
+                model="gpt-4",
+                messages=messages,
+                temperature=0.7
+            )
+            
+            return final_response.choices[0].message.content
+        else:
+            return message.content
+            
+    except Exception as e:
+        return f"❌ Error in OpenAI chat: {str(e)}"
 
 
 def setup_sidebar():
-    """Setup the sidebar with tool selection and server status."""
+    """Setup the sidebar with configuration."""
     with st.sidebar:
-        st.header("🔧 Tool Selection & Configuration")
+        st.header("🔧 Configuration")
+        
+        # OpenAI API Key
+        st.subheader("🤖 OpenAI Configuration")
+        openai_api_key = st.text_input(
+            "OpenAI API Key", 
+            type="password",
+            value=st.session_state.openai_api_key,
+            help="Enter your OpenAI API key"
+        )
+        
+        if openai_api_key:
+            st.session_state.openai_api_key = openai_api_key
+            try:
+                st.session_state.openai_client = OpenAI(api_key=openai_api_key)
+                st.success("✅ OpenAI API Key Set")
+            except Exception as e:
+                st.error(f"❌ Invalid OpenAI API Key: {e}")
+        else:
+            st.warning("⚠️ Please enter your OpenAI API Key")
         
         # Server connection
-        st.subheader("🔗 Server Connection")
+        st.subheader("🔗 Tool Server Connection")
         server_url = st.text_input(
             "Server URL", 
             value="http://localhost:8947",
             help="URL of the Tool Recommendation Server"
         )
         
-        # Check connection and get tools
-        if st.button("🔄 Connect & Load Tools") or st.session_state.server_status == "unknown":
+        if st.button("🔄 Connect to Tool Server"):
             with st.spinner("Connecting to server and loading tools..."):
                 is_connected = check_server_connection(server_url)
                 
                 if is_connected:
                     st.session_state.server_status = "connected"
-                    
-                    # Get available tools
                     tools = get_available_tools(server_url)
                     st.session_state.available_tools = tools
-                    
                     st.success("✅ Connected to server!")
                     st.success(f"📋 Loaded {len(tools)} tools")
-                    
                 else:
                     st.session_state.server_status = "disconnected"
                     st.error("❌ Cannot connect to server")
         
-        # Tool Selection
-        if st.session_state.server_status == "connected" and st.session_state.available_tools:
-            st.subheader("🛠️ Select Tool")
-            
-            # Create tool categories for better organization
-            tool_categories = {
-                "🔍 Search & Discovery": ["search_tools", "search_web", "search_github_repositories"],
-                "🔬 Analysis": ["analyze_tools", "analyze_repository", "compare_tools"],
-                "📚 Information": ["get_installation_guide", "quick_repo_summary", "get_repository_structure"],
-                "🗃️ Repository": ["get_file_from_repository"],
-                "🤖 AI Search": ["perplexity_search"],
-                "💾 Database": ["natural_language_query", "get_database_schema"]
-            }
-            
-            # Tool selection dropdown
-            all_tools = list(st.session_state.available_tools.keys())
-            
-            selected_tool = st.selectbox(
-                "Choose a tool to use:",
-                options=["None"] + all_tools,
-                index=0 if st.session_state.selected_tool is None else all_tools.index(st.session_state.selected_tool) + 1,
-                help="Select the tool you want to use for your query"
-            )
-            
-            if selected_tool != "None":
-                st.session_state.selected_tool = selected_tool
-                
-                # Show tool description
-                tool_info = st.session_state.available_tools.get(selected_tool, {})
-                if tool_info.get("description"):
-                    st.info(f"📝 **Tool Description:**\n{tool_info['description']}")
-                
-                # Show tool category
-                for category, tools in tool_categories.items():
-                    if selected_tool in tools:
-                        st.success(f"📂 **Category:** {category}")
-                        break
-                
-                # Show example usage
-                examples = get_tool_examples(selected_tool)
-                if examples:
-                    st.markdown("💡 **Example inputs:**")
-                    for example in examples:
-                        st.code(example, language="text")
-            else:
-                st.session_state.selected_tool = None
+        # Status indicators
+        st.markdown("---")
+        st.subheader("📊 Status")
         
-        # Connection status
-        if st.session_state.server_status == "connected":
-            st.success(f"✅ Server Connected ({len(st.session_state.available_tools)} tools)")
-        elif st.session_state.server_status == "disconnected":
-            st.error("❌ Server Disconnected")
+        if st.session_state.openai_client:
+            st.success("✅ OpenAI: Connected")
         else:
-            st.info("🔄 Not connected - Click 'Connect & Load Tools'")
-
-
-def get_tool_examples(tool_name: str) -> list:
-    """Get example inputs for each tool."""
-    examples = {
-        "search_tools": [
-            "Python web frameworks",
-            "JavaScript testing libraries",
-            "Machine learning frameworks"
-        ],
-        "analyze_tools": [
-            "React, Vue, Angular",
-            "Docker, Kubernetes",
-            "FastAPI"
-        ],
-        "compare_tools": [
-            "React, Vue, Angular",
-            "PostgreSQL, MySQL, MongoDB"
-        ],
-        "get_installation_guide": [
-            "Docker",
-            "Node.js",
-            "Python"
-        ],
-        "search_web": [
-            "Best Python frameworks 2024",
-            "How to deploy FastAPI"
-        ],
-        "search_github_repositories": [
-            "FastAPI",
-            "React components",
-            "Python machine learning"
-        ],
-        "get_repository_structure": [
-            "https://github.com/tiangolo/fastapi",
-            "https://github.com/facebook/react"
-        ],
-        "analyze_repository": [
-            "https://github.com/tiangolo/fastapi",
-            "https://github.com/streamlit/streamlit"
-        ],
-        "quick_repo_summary": [
-            "https://github.com/tiangolo/fastapi"
-        ],
-        "get_file_from_repository": [
-            "https://github.com/tiangolo/fastapi README.md",
-            "https://github.com/facebook/react package.json"
-        ],
-        "perplexity_search": [
-            "Latest trends in web development",
-            "Best practices for API design"
-        ],
-        "natural_language_query": [
-            "Show me all Python tools",
-            "What are the most popular frameworks?"
-        ],
-        "get_database_schema": [
-            "(No input needed - shows database structure)"
-        ]
-    }
-    
-    return examples.get(tool_name, [])
+            st.error("❌ OpenAI: Not configured")
+        
+        if st.session_state.server_status == "connected":
+            st.success(f"✅ Tools: Connected ({len(st.session_state.available_tools)} available)")
+        else:
+            st.error("❌ Tools: Not connected")
+        
+        if st.session_state.available_tools:
+            with st.expander("🛠️ Available Tools"):
+                for tool_name in st.session_state.available_tools.keys():
+                    st.write(f"• {tool_name}")
 
 
 def display_chat_interface():
     """Display the main chat interface."""
     st.header("🤖 AI Tool Assistant")
+    st.markdown("*Powered by OpenAI GPT-4 with intelligent tool selection*")
     
-    if st.session_state.selected_tool:
-        st.info(f"🔧 **Selected Tool:** {st.session_state.selected_tool}")
-    else:
-        st.warning("⚠️ Please select a tool from the sidebar first!")
+    if not st.session_state.openai_client:
+        st.warning("⚠️ Please configure your OpenAI API key in the sidebar first!")
+        return
+    
+    if st.session_state.server_status != "connected":
+        st.warning("⚠️ Please connect to the tool server in the sidebar first!")
+        return
     
     # Display chat messages
     for message in st.session_state.messages:
@@ -259,81 +304,80 @@ def display_chat_interface():
             st.markdown(message["content"])
     
     # Chat input
-    if prompt := st.chat_input("Ask me anything about tools or enter your query for the selected tool..."):
+    if prompt := st.chat_input("Ask me anything about development tools, frameworks, or repositories..."):
         # Add user message
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
         
-        # Generate assistant response
+        # Generate assistant response using OpenAI
         with st.chat_message("assistant"):
-            if st.session_state.selected_tool and st.session_state.server_status == "connected":
-                with st.spinner(f"🔄 Executing {st.session_state.selected_tool}..."):
-                    response = execute_selected_tool(
-                        st.session_state.selected_tool, 
-                        prompt, 
-                        "http://localhost:8947"
-                    )
-                
-                st.markdown(response)
-                st.session_state.messages.append({"role": "assistant", "content": response})
-                
-            elif not st.session_state.selected_tool:
-                response = "Please select a tool from the sidebar first, then ask your question!"
-                st.markdown(response)
-                st.session_state.messages.append({"role": "assistant", "content": response})
-                
-            else:
-                response = "Server not connected. Please connect to the server first."
-                st.markdown(response)
-                st.session_state.messages.append({"role": "assistant", "content": response})
+            with st.spinner("🤖 Thinking and selecting tools..."):
+                response = chat_with_openai(
+                    prompt, 
+                    st.session_state.available_tools,
+                    st.session_state.openai_client
+                )
+            
+            st.markdown(response)
+            st.session_state.messages.append({"role": "assistant", "content": response})
 
 
 def main():
     """Main application function."""
     st.set_page_config(
         page_title="AI Tool Assistant",
-        page_icon="🔧",
+        page_icon="🤖",
         layout="wide",
         initial_sidebar_state="expanded"
     )
     
-    # Initialize session state
     initialize_session_state()
-    
-    # Setup sidebar
     setup_sidebar()
     
-    # Main content area
-    col1, col2 = st.columns([3, 1])
+    col1, col2 = st.columns([4, 1])
     
     with col1:
         display_chat_interface()
     
     with col2:
-        st.subheader("ℹ️ How to Use")
+        st.subheader("ℹ️ How It Works")
         st.markdown("""
-        **Step 1:** Connect to server in sidebar
+        **1.** Configure OpenAI API key
         
-        **Step 2:** Select a tool from dropdown
+        **2.** Connect to tool server
         
-        **Step 3:** Ask your question in chat
+        **3.** Ask any question about:
+        - Development tools
+        - Frameworks
+        - GitHub repositories
+        - Installation guides
         
-        **Step 4:** Bot executes selected tool!
+        **4.** AI automatically selects and uses the best tools!
         """)
         
-        if st.session_state.selected_tool:
-            st.success(f"✅ Ready to use: **{st.session_state.selected_tool}**")
-        else:
-            st.info("👈 Select a tool to get started")
+        st.markdown("---")
+        st.subheader("💡 Example Questions")
+        st.markdown("""
+        • "What are the best Python web frameworks?"
+        
+        • "How do I install Docker?"
+        
+        • "Analyze the FastAPI repository"
+        
+        • "Find machine learning tools"
+        """)
     
     # Footer
     st.markdown("---")
+    openai_status = "✅" if st.session_state.openai_client else "❌"
+    server_status = "✅" if st.session_state.server_status == "connected" else "❌"
+    
     st.markdown(
-        "<div style='text-align: center; color: #666;'>"
-        f"🔧 AI Tool Assistant | Server: {'✅' if st.session_state.server_status == 'connected' else '❌'} | "
-        f"Selected Tool: {st.session_state.selected_tool or 'None'}"
-        "</div>",
+        f"<div style='text-align: center; color: #666;'>"
+        f"🤖 AI Tool Assistant | OpenAI: {openai_status} | Tools: {server_status} | "
+        f"Port: 8947"
+        f"</div>",
         unsafe_allow_html=True
     )
 
