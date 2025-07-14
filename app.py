@@ -97,6 +97,8 @@ def execute_tool_on_server(tool_name: str, parameters: Dict[str, Any], server_ur
 
 def create_openai_function_definitions(available_tools: Dict[str, Any]) -> List[Dict]:
     """Create OpenAI function definitions from available tools."""
+    # Check if we have a default Notion page ID configured
+    has_default_page_id = bool(st.session_state.get("notion_page_id"))
     
     function_definitions = {
         "search_tools": {
@@ -157,48 +159,52 @@ def create_openai_function_definitions(available_tools: Dict[str, Any]) -> List[
         },
         "read_notion_page": {
             "name": "read_notion_page",
-            "description": "Read content from a Notion page",
+            "description": "Read content from a Notion page" + (" (uses default page if none specified)" if has_default_page_id else ""),
             "parameters": {
                 "type": "object",
                 "properties": {
                     "page_id": {
                         "type": "string",
-                        "description": "Notion page ID to read from"
+                        "description": "Notion page ID to read from" + (" (optional, uses default if not provided)" if has_default_page_id else "")
                     }
                 },
-                "required": ["page_id"]
+                "required": [] if has_default_page_id else ["page_id"]
             }
         },
         "search_notion_page": {
             "name": "search_notion_page",
-            "description": "Search for content within Notion pages",
+            "description": "Search for content within Notion pages" + (" (uses default page if none specified)" if has_default_page_id else ""),
             "parameters": {
                 "type": "object",
                 "properties": {
                     "query": {
                         "type": "string",
                         "description": "Search query to find in Notion"
+                    },
+                    "page_id": {
+                        "type": "string",
+                        "description": "Notion page ID to search in" + (" (optional, uses default if not provided)" if has_default_page_id else "")
                     }
                 },
-                "required": ["query"]
+                "required": ["query"] + ([] if has_default_page_id else ["page_id"])
             }
         },
         "add_to_notion_page": {
             "name": "add_to_notion_page",
-            "description": "Add content to a Notion page",
+            "description": "Add content to a Notion page" + (" (uses default page if none specified)" if has_default_page_id else ""),
             "parameters": {
                 "type": "object",
                 "properties": {
                     "page_id": {
                         "type": "string",
-                        "description": "Notion page ID to add content to"
+                        "description": "Notion page ID to add content to" + (" (optional, uses default if not provided)" if has_default_page_id else "")
                     },
                     "content": {
                         "type": "string",
                         "description": "Content to add to the page"
                     }
                 },
-                "required": ["page_id", "content"]
+                "required": ["content"] + ([] if has_default_page_id else ["page_id"])
             }
         }
     }
