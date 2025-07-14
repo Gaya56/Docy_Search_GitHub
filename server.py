@@ -19,17 +19,17 @@ import logging
 # Add the tool_recommendation directory to the path
 sys.path.insert(0, str(Path(__file__).parent))
 
-# Import all MCP servers
+# Import individual tool functions directly
 try:
-    from tool_recommendation.mcp_server import mcp as main_mcp
-    from tool_recommendation.brave_search import mcp as brave_mcp
-    from tool_recommendation.github_mcp_server import mcp as github_mcp
-    from tool_recommendation.code_analyzer import mcp as code_analyzer_mcp
-    from tool_recommendation.sql_tools import mcp as sql_mcp
-    from tool_recommendation.perplexity_search import mcp as perplexity_mcp
+    from tool_recommendation.mcp_server import search_tools, analyze_tools, get_installation_guide, compare_tools
+    from tool_recommendation.brave_search import search_web
+    from tool_recommendation.github_mcp_server import search_github_repositories, get_repository_structure, get_file_from_repository
+    from tool_recommendation.code_analyzer import analyze_repository, get_code_quality_metrics
+    from tool_recommendation.sql_tools import natural_language_query, execute_sql_query
+    from tool_recommendation.perplexity_search import perplexity_search
     from tool_recommendation.activity_tracker import activity_tracker
 except ImportError as e:
-    print(f"Error importing MCP servers: {e}")
+    print(f"Error importing tool functions: {e}")
     sys.exit(1)
 
 # Configure logging
@@ -75,29 +75,29 @@ class ActivityResponse(BaseModel):
 # Available tools mapping
 AVAILABLE_TOOLS = {
     # Main tool recommendation tools
-    "search_tools": main_mcp,
-    "analyze_tools": main_mcp,
-    "get_installation_guide": main_mcp,
-    "compare_tools": main_mcp,
+    "search_tools": search_tools,
+    "analyze_tools": analyze_tools,
+    "get_installation_guide": get_installation_guide,
+    "compare_tools": compare_tools,
     
     # Web search tools
-    "search_web": brave_mcp,
+    "search_web": search_web,
     
     # GitHub tools
-    "search_github_repositories": github_mcp,
-    "get_repository_structure": github_mcp,
-    "get_file_from_repository": github_mcp,
+    "search_github_repositories": search_github_repositories,
+    "get_repository_structure": get_repository_structure,
+    "get_file_from_repository": get_file_from_repository,
     
     # Code analysis tools
-    "analyze_repository": code_analyzer_mcp,
-    "get_code_quality_metrics": code_analyzer_mcp,
+    "analyze_repository": analyze_repository,
+    "get_code_quality_metrics": get_code_quality_metrics,
     
     # SQL tools
-    "natural_language_query": sql_mcp,
-    "execute_sql_query": sql_mcp,
+    "natural_language_query": natural_language_query,
+    "execute_sql_query": execute_sql_query,
     
     # Perplexity search
-    "perplexity_search": perplexity_mcp,
+    "perplexity_search": perplexity_search,
 }
 
 @app.get("/")
@@ -142,22 +142,26 @@ async def execute_tool(request: ToolRequest) -> ToolResponse:
                 detail=f"Tool '{tool_name}' not found. Available tools: {list(AVAILABLE_TOOLS.keys())}"
             )
         
-        # Import the function directly from the module
-        if tool_name == "search_tools":
-            from tool_recommendation.mcp_server import search_tools
-            result = await search_tools(**parameters)
-        elif tool_name == "analyze_tools":
-            from tool_recommendation.mcp_server import analyze_tools
-            result = await analyze_tools(**parameters)
-        elif tool_name == "get_installation_guide":
-            from tool_recommendation.mcp_server import get_installation_guide
-            result = await get_installation_guide(**parameters)
-        elif tool_name == "compare_tools":
-            from tool_recommendation.mcp_server import compare_tools
-            result = await compare_tools(**parameters)
-        elif tool_name == "search_web":
-            from tool_recommendation.brave_search import search_web
-            result = await search_web(**parameters)
+        tool_func = AVAILABLE_TOOLS[tool_name]
+        
+        # Execute the tool
+        if asyncio.iscoroutinefunction(tool_func):
+            result = await tool_func(**parameters)
+        else:
+            result = tool_func(**parameters)
+        
+        return ToolResponse(
+            success=True,
+            result=str(result),
+            activity_id=getattr(activity_tracker, '_activity_id', None)
+        )
+        
+    except Exception as e:
+        logger.error(f"Error executing tool '{request.tool_name}': {e}")
+        return ToolResponse(
+            success=False,
+            error=str(e)
+        )
         elif tool_name == "search_github_repositories":
             from tool_recommendation.github_mcp_server import search_github_repositories
             result = await search_github_repositories(**parameters)
