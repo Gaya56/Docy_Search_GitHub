@@ -14,11 +14,7 @@ except ImportError:
 load_dotenv(override=True)
 
 # Initialize FastMCP
-mcp = FastMCP(
-    name="perplexity_search",
-    version="1.0.0",
-    description="Perplexity AI-powered web search with focus areas"
-)
+mcp = FastMCP("perplexity_search")
 
 # Initialize the Perplexity API
 perplexity_api_key = os.getenv("PERPLEXITY_API_KEY", "")

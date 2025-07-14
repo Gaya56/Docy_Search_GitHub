@@ -16,11 +16,7 @@ except ImportError:
 load_dotenv(override=True)
 
 # Initialize FastMCP
-mcp = FastMCP(
-    name="websearch", 
-    version="1.0.0",
-    description="Web search capability using Brave Search API"
-)
+mcp = FastMCP("websearch")
 
 # Initialize the Brave Search API
 brave_api_key = os.getenv("BRAVE_API_KEY", "")

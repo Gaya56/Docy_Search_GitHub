@@ -18,11 +18,7 @@ except ImportError:
 load_dotenv(override=True)
 
 # Initialize FastMCP
-mcp = FastMCP(
-    name="code_analyzer",
-    version="1.0.0",
-    description="Analyze external repositories for code quality and structure"
-)
+mcp = FastMCP("code_analyzer")
 
 
 class RepositoryAnalyzer:

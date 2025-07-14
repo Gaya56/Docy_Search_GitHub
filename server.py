@@ -6,7 +6,6 @@ This server aggregates all MCP tools into a single endpoint
 that can be easily integrated into any chatbot or application.
 """
 
-import asyncio
 import os
 import sys
 from pathlib import Path
@@ -26,7 +25,6 @@ try:
     from tool_recommendation.brave_search import mcp as brave_mcp
     from tool_recommendation.github_mcp_server import mcp as github_mcp
     from tool_recommendation.code_analyzer import mcp as code_analyzer_mcp
-    from tool_recommendation.python_tools import mcp as python_mcp
     from tool_recommendation.sql_tools import mcp as sql_mcp
     from tool_recommendation.perplexity_search import mcp as perplexity_mcp
     from tool_recommendation.activity_tracker import activity_tracker
@@ -94,10 +92,6 @@ AVAILABLE_TOOLS = {
     "analyze_repository": code_analyzer_mcp,
     "get_code_quality_metrics": code_analyzer_mcp,
     
-    # Python tools
-    "python_repl": python_mcp,
-    "data_visualization": python_mcp,
-    
     # SQL tools
     "natural_language_query": sql_mcp,
     "execute_sql_query": sql_mcp,
@@ -148,29 +142,57 @@ async def execute_tool(request: ToolRequest) -> ToolResponse:
                 detail=f"Tool '{tool_name}' not found. Available tools: {list(AVAILABLE_TOOLS.keys())}"
             )
         
-        mcp_server = AVAILABLE_TOOLS[tool_name]
-        
-        # Get the tool function from the MCP server
-        tool_func = None
-        if hasattr(mcp_server, '_tools') and tool_name in mcp_server._tools:
-            tool_func = mcp_server._tools[tool_name]
-        elif hasattr(mcp_server, 'tools') and tool_name in mcp_server.tools:
-            tool_func = mcp_server.tools[tool_name]
+        # Import the function directly from the module
+        if tool_name == "search_tools":
+            from tool_recommendation.mcp_server import search_tools
+            result = await search_tools(**parameters)
+        elif tool_name == "analyze_tools":
+            from tool_recommendation.mcp_server import analyze_tools
+            result = await analyze_tools(**parameters)
+        elif tool_name == "get_installation_guide":
+            from tool_recommendation.mcp_server import get_installation_guide
+            result = await get_installation_guide(**parameters)
+        elif tool_name == "compare_tools":
+            from tool_recommendation.mcp_server import compare_tools
+            result = await compare_tools(**parameters)
+        elif tool_name == "search_web":
+            from tool_recommendation.brave_search import search_web
+            result = await search_web(**parameters)
+        elif tool_name == "search_github_repositories":
+            from tool_recommendation.github_mcp_server import search_github_repositories
+            result = await search_github_repositories(**parameters)
+        elif tool_name == "get_repository_structure":
+            from tool_recommendation.github_mcp_server import get_repository_structure
+            result = await get_repository_structure(**parameters)
+        elif tool_name == "get_file_from_repository":
+            from tool_recommendation.github_mcp_server import get_file_from_repository
+            result = await get_file_from_repository(**parameters)
+        elif tool_name == "analyze_repository":
+            from tool_recommendation.code_analyzer import analyze_repository
+            result = await analyze_repository(**parameters)
+        elif tool_name == "get_code_quality_metrics":
+            from tool_recommendation.code_analyzer import get_code_quality_metrics
+            result = await get_code_quality_metrics(**parameters)
+        elif tool_name == "python_repl":
+            from tool_recommendation.python_tools import python_repl
+            result = await python_repl(**parameters)
+        elif tool_name == "data_visualization":
+            from tool_recommendation.python_tools import data_visualization
+            result = await data_visualization(**parameters)
+        elif tool_name == "natural_language_query":
+            from tool_recommendation.sql_tools import natural_language_query
+            result = await natural_language_query(**parameters)
+        elif tool_name == "execute_sql_query":
+            from tool_recommendation.sql_tools import execute_sql_query
+            result = await execute_sql_query(**parameters)
+        elif tool_name == "perplexity_search":
+            from tool_recommendation.perplexity_search import perplexity_search
+            result = await perplexity_search(**parameters)
         else:
-            # Try to find the function by name
-            tool_func = getattr(mcp_server, tool_name, None)
-        
-        if not tool_func:
             raise HTTPException(
                 status_code=500,
-                detail=f"Tool function '{tool_name}' not found in server"
+                detail=f"Tool function '{tool_name}' implementation not found"
             )
-        
-        # Execute the tool
-        if asyncio.iscoroutinefunction(tool_func):
-            result = await tool_func(**parameters)
-        else:
-            result = tool_func(**parameters)
         
         return ToolResponse(
             success=True,
@@ -210,14 +232,15 @@ async def streamlit_integration(request: ToolRequest) -> ToolResponse:
 
 def main():
     """Main entry point for the server."""
-    # Ensure data directory exists
-    os.makedirs("/app/data", exist_ok=True)
+    # Ensure data directory exists (use local path when not in container)
+    data_dir = "/app/data" if os.path.exists("/app") else "./data"
+    os.makedirs(data_dir, exist_ok=True)
     
     # Start the server
     uvicorn.run(
         "server:app",
         host="0.0.0.0",
-        port=8000,
+        port=8947,
         reload=False,
         log_level="info"
     )

@@ -16,11 +16,7 @@ except ImportError:
 load_dotenv(override=True)
 
 # Initialize FastMCP
-mcp = FastMCP(
-    name="sql_tools",
-    version="1.0.0",
-    description="Natural language to SQL query tool for docy_search database"
-)
+mcp = FastMCP("sql_tools")
 
 # Database configuration
 database_config = {

@@ -12,7 +12,7 @@ from typing import Dict, Any
 class ToolRecommendationClient:
     """Client for Tool Recommendation MCP Server."""
     
-    def __init__(self, base_url: str = "http://localhost:8000"):
+    def __init__(self, base_url: str = "http://localhost:8947"):
         """
         Initialize the client.
         
@@ -111,16 +111,6 @@ class ToolRecommendationClient:
                                  tool_name=tool_name, os_type=os_type)
         return result.get("result", result.get("error", "No result"))
     
-    def execute_python(self, code: str) -> str:
-        """Execute Python code."""
-        result = self.execute_tool("python_repl", code=code)
-        return result.get("result", result.get("error", "No result"))
-    
-    def create_visualization(self, code: str) -> str:
-        """Create data visualization."""
-        result = self.execute_tool("data_visualization", code=code)
-        return result.get("result", result.get("error", "No result"))
-    
     def query_database(self, question: str) -> str:
         """Query database using natural language."""
         result = self.execute_tool("natural_language_query", question=question)
@@ -132,7 +122,7 @@ class StreamlitToolClient:
     Streamlit-optimized client with progress tracking and caching.
     """
     
-    def __init__(self, base_url: str = "http://localhost:8000"):
+    def __init__(self, base_url: str = "http://localhost:8947"):
         self.client = ToolRecommendationClient(base_url)
     
     def search_and_analyze_tools(self, query: str, requirements: str = "", 
@@ -195,10 +185,6 @@ class StreamlitToolClient:
             # Installation guide
             tool_name = user_message.split("install")[-1].strip()
             result = self.client.get_installation_guide(tool_name)
-        elif "python" in user_message.lower() and "code" in user_message.lower():
-            # Python execution (extract code from message)
-            # This would need more sophisticated parsing
-            result = "Please provide the Python code you'd like to execute."
         else:
             # General tool search and analysis
             workflow_result = self.search_and_analyze_tools(user_message)

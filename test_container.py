@@ -12,7 +12,7 @@ def test_container():
     print("🧪 Testing Tool Recommendation Container...")
     
     # Initialize client
-    client = ToolRecommendationClient("http://localhost:8000")
+    client = ToolRecommendationClient("http://localhost:8947")
     
     # Wait for server to start
     print("⏳ Waiting for server to start...")

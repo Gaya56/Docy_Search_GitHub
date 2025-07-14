@@ -31,11 +31,11 @@ ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1
 
 # Expose the MCP server port
-EXPOSE 8000
+EXPOSE 8947
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8000/health || exit 1
+    CMD curl -f http://localhost:8947/health || exit 1
 
 # Start the MCP server
 CMD ["python", "server.py"]

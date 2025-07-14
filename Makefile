@@ -9,7 +9,7 @@ build:
 run:
 	@echo "🚀 Starting Tool Recommendation Container..."
 	docker-compose up -d
-	@echo "✅ Container started! Access at http://localhost:8000"
+	@echo "✅ Container started! Access at http://localhost:8947"
 
 # Stop the container
 stop:
@@ -35,7 +35,7 @@ logs:
 # Health check
 health:
 	@echo "🏥 Checking container health..."
-	curl -f http://localhost:8000/health || echo "❌ Container not healthy"
+	curl -f http://localhost:8947/health || echo "❌ Container not healthy"
 
 # Full setup and test
 setup: build run
@@ -46,4 +46,4 @@ setup: build run
 # Development mode (with live reload)
 dev:
 	@echo "🔧 Starting in development mode..."
-	uvicorn server:app --host 0.0.0.0 --port 8000 --reload
+	uvicorn server:app --host 0.0.0.0 --port 8947 --reload

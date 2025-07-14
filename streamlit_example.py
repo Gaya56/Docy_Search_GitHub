@@ -48,7 +48,7 @@ def setup_sidebar():
         st.subheader("🔗 Server Connection")
         server_url = st.text_input(
             "Server URL", 
-            value="http://localhost:8000",
+            value="http://localhost:8947",
             help="URL of the Tool Recommendation Container"
         )
         

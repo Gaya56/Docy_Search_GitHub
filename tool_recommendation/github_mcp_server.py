@@ -24,11 +24,7 @@ except ImportError:
 load_dotenv(override=True)
 
 # Initialize FastMCP
-mcp = FastMCP(
-    name="github", 
-    version="1.0.0",
-    description="GitHub repository search and analysis"
-)
+mcp = FastMCP("github")
 
 # Initialize GitHub API configuration
 github_token = os.getenv("GITHUB_TOKEN", "")
