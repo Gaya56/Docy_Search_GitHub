@@ -18,8 +18,10 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the tool recommendation system
-COPY docy_search/tool_recommendation/ ./tool_recommendation/
+COPY tool_recommendation/ ./tool_recommendation/
 COPY config/ ./config/
+COPY server.py .
+COPY client.py .
 
 # Create data directory for SQLite databases
 RUN mkdir -p /app/data
@@ -36,4 +38,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
 # Start the MCP server
-CMD ["python", "-m", "tool_recommendation.server"]
+CMD ["python", "server.py"]
