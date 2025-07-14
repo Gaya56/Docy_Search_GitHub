@@ -27,6 +27,7 @@ try:
     from tool_recommendation.code_analyzer import analyze_repository, quick_repo_summary
     from tool_recommendation.sql_tools import natural_language_query, get_database_schema
     from tool_recommendation.perplexity_search import perplexity_search
+    from tool_recommendation.notion_mcp_server import read_notion_page, search_notion_page, add_to_notion_page
     from tool_recommendation.activity_tracker import activity_tracker
 except ImportError as e:
     print(f"Error importing tool functions: {e}")
@@ -98,6 +99,11 @@ AVAILABLE_TOOLS = {
     
     # Perplexity search
     "perplexity_search": perplexity_search,
+    
+    # Notion tools
+    "read_notion_page": read_notion_page,
+    "search_notion_page": search_notion_page,
+    "add_to_notion_page": add_to_notion_page,
 }
 
 @app.get("/")
@@ -177,6 +183,15 @@ async def execute_tool(request: ToolRequest) -> ToolResponse:
         elif tool_name == "perplexity_search":
             from tool_recommendation.perplexity_search import perplexity_search
             result = await perplexity_search(**parameters)
+        elif tool_name == "read_notion_page":
+            from tool_recommendation.notion_mcp_server import read_notion_page
+            result = await read_notion_page.fn(**parameters)
+        elif tool_name == "search_notion_page":
+            from tool_recommendation.notion_mcp_server import search_notion_page
+            result = await search_notion_page.fn(**parameters)
+        elif tool_name == "add_to_notion_page":
+            from tool_recommendation.notion_mcp_server import add_to_notion_page
+            result = await add_to_notion_page.fn(**parameters)
         else:
             raise HTTPException(
                 status_code=500,
