@@ -152,37 +152,43 @@ async def execute_tool(request: ToolRequest) -> ToolResponse:
         # Import and call the function directly
         if tool_name == "search_tools":
             from tool_recommendation.mcp_server import search_tools
-            result = await search_tools(**parameters)
+            result = await search_tools.fn(**parameters)
         elif tool_name == "analyze_tools":
             from tool_recommendation.mcp_server import analyze_tools
-            result = await analyze_tools(**parameters)
+            result = await analyze_tools.fn(**parameters)
+        elif tool_name == "get_installation_guide":
+            from tool_recommendation.mcp_server import get_installation_guide
+            result = await get_installation_guide.fn(**parameters)
+        elif tool_name == "compare_tools":
+            from tool_recommendation.mcp_server import compare_tools
+            result = await compare_tools.fn(**parameters)
         elif tool_name == "search_web":
             from tool_recommendation.brave_search import search_web
-            result = await search_web(**parameters)
+            result = await search_web.fn(**parameters)
         elif tool_name == "search_github_repositories":
             from tool_recommendation.github_mcp_server import search_github_repositories
-            result = await search_github_repositories(**parameters)
+            result = await search_github_repositories.fn(**parameters)
         elif tool_name == "get_repository_structure":
             from tool_recommendation.github_mcp_server import get_repository_structure
-            result = await get_repository_structure(**parameters)
+            result = await get_repository_structure.fn(**parameters)
         elif tool_name == "get_file_from_repository":
             from tool_recommendation.github_mcp_server import get_file_from_repository
-            result = await get_file_from_repository(**parameters)
+            result = await get_file_from_repository.fn(**parameters)
         elif tool_name == "analyze_repository":
             from tool_recommendation.code_analyzer import analyze_repository
-            result = await analyze_repository(**parameters)
+            result = await analyze_repository.fn(**parameters)
         elif tool_name == "quick_repo_summary":
             from tool_recommendation.code_analyzer import quick_repo_summary
-            result = await quick_repo_summary(**parameters)
+            result = await quick_repo_summary.fn(**parameters)
         elif tool_name == "natural_language_query":
             from tool_recommendation.sql_tools import natural_language_query
-            result = await natural_language_query(**parameters)
+            result = await natural_language_query.fn(**parameters)
         elif tool_name == "get_database_schema":
             from tool_recommendation.sql_tools import get_database_schema
-            result = await get_database_schema(**parameters)
+            result = await get_database_schema.fn(**parameters)
         elif tool_name == "perplexity_search":
             from tool_recommendation.perplexity_search import perplexity_search
-            result = await perplexity_search(**parameters)
+            result = await perplexity_search.fn(**parameters)
         elif tool_name == "read_notion_page":
             from tool_recommendation.notion_mcp_server import read_notion_page
             result = await read_notion_page.fn(**parameters)
@@ -244,7 +250,7 @@ def main():
     uvicorn.run(
         "server:app",
         host="0.0.0.0",
-        port=8947,
+        port=8888,
         reload=False,
         log_level="info"
     )
