@@ -1,371 +1,254 @@
-# 🔧 Tool Recommendation System - Docker Container
+# 🤖 AI Tool Recommendation System with Notion Integration
 
-A powerful AI-powered tool recommendation system packaged as a Docker container for easy integration into any chatbot or application.
+A comprehensive AI-powered platform that combines intelligent tool discovery with seamless Notion document management. Perfect for developers who want to find the right tools and manage their documentation in one unified interface.
 
-## 🏗️ System Overview
+## ✨ Features
 
-This container packages the entire `tool_recommendation` directory into a standalone microservice that provides:
+### 🔍 Tool Discovery & Analysis
+- **Smart Tool Search**: Find development tools using natural language queries
+- **AI-Powered Recommendations**: Get personalized tool suggestions based on your needs
+- **Detailed Comparisons**: Compare frameworks, libraries, and tools side-by-side
+- **Installation Guides**: Step-by-step setup instructions for any platform
+- **GitHub Integration**: Explore and analyze repository structures and code quality
+- **Code Execution**: Run Python snippets and create data visualizations
 
-- **AI-Powered Tool Discovery**: Search and analyze tools using multiple APIs
-- **GitHub Integration**: Repository search, code analysis, and file exploration  
-- **Web Search**: Brave Search API integration for finding tools
-- **Code Analysis**: Repository quality assessment and dependency analysis
-- **Python REPL**: Execute Python code and create visualizations
-- **Database Queries**: Natural language to SQL conversion
-- **Real-time Activity Tracking**: Monitor all operations and resource usage
+### 📝 Notion Document Management
+- **Page Reading**: Access and display your Notion page contents
+- **Smart Search**: Find information across your Notion workspace
+- **Content Analysis**: Get AI insights from your documentation
+- **Organization Tips**: Improve your Notion workflow with AI suggestions
+
+### 🌐 Web Search & Analysis
+- **Brave Search Integration**: Get real-time web search results
+- **Perplexity AI Search**: Access advanced AI-powered search capabilities
+- **GitHub Repository Search**: Discover relevant repositories and analyze code
+
+### 💾 Data Management
+- **SQL Query Interface**: Natural language to SQL conversion
+- **Database Tools**: Manage and query your data with ease
+- **Activity Tracking**: Monitor tool usage and API calls
 
 ## 🚀 Quick Start
 
-### 1. Clone and Setup
+### 1. Prerequisites
+- Python 3.8+
+- Docker & Docker Compose
+- UV package manager (recommended) or pip
 
+### 2. Clone & Setup
 ```bash
-git clone <your-repo>
-cd <repo-name>
-cp .env.example .env
+git clone https://github.com/Gaya56/Docy_Search_GitHub.git
+cd Docy_Search_GitHub
+
+# Create virtual environment
+uv venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+
+# Install dependencies
+uv pip install -r requirements.txt
 ```
 
-### 2. Configure API Keys
-
-Edit `.env` file with your API keys:
-
+### 3. Environment Configuration
+Create a `.env` file with your API keys:
 ```bash
-# Required
-BRAVE_API_KEY=your_brave_api_key_here
-GOOGLE_API_KEY=your_google_api_key_here
+# Required for tool recommendations
+OPENAI_API_KEY=your_openai_key
+BRAVE_API_KEY=your_brave_key
+PERPLEXITY_API_KEY=your_perplexity_key
+GITHUB_TOKEN=your_github_token
+GOOGLE_API_KEY=your_google_key
 
-# Optional but recommended
-GITHUB_TOKEN=your_github_token_here
-OPENAI_API_KEY=your_openai_api_key_here
-PERPLEXITY_API_KEY=your_perplexity_api_key_here
+# Optional for Notion integration
+NOTION_API_KEY=your_notion_key
+NOTION_PAGE_ID=your_default_page_id
 ```
 
-### 3. Start the Container
-
+### 4. Start the System
 ```bash
-# Using Docker Compose (recommended)
+# Start the tool recommendation server
+make run
+
+# In another terminal, start the Streamlit app
+source .venv/bin/activate
+streamlit run app.py
+```
+
+### 5. Access the Application
+- **Streamlit Web UI**: http://localhost:8501
+- **API Server**: http://localhost:8947
+
+## 🎯 Usage Modes
+
+### Tool Discovery Mode
+Perfect for finding and analyzing development tools:
+- "Find the best Python web frameworks"
+- "Compare React vs Vue.js for my project"
+- "How do I install Docker on Ubuntu?"
+- "Show me popular data science libraries"
+
+### Notion Integration Mode
+Ideal for managing your documentation:
+- "Read my project planning page"
+- "Search for API documentation in my workspace"
+- "Analyze my meeting notes from last week"
+- "Help me organize my Notion workspace"
+
+### Combined Mode
+Get the best of both worlds:
+- "Find Python tools and document them in Notion"
+- "Read my development notes and suggest missing tools"
+- "Compare frameworks and save findings to my page"
+
+## 🛠️ Available Tools
+
+### Search & Analysis
+- `search_tools` - Find development tools by category or purpose
+- `analyze_tools` - Get detailed tool analysis and comparisons
+- `get_installation_guide` - Platform-specific installation instructions
+
+### Web & GitHub
+- `search_web` - Real-time web search via Brave API
+- `search_github_repositories` - Find and analyze GitHub repos
+- `get_repository_structure` - Explore repository contents
+- `analyze_repository` - Code quality and structure analysis
+
+### Development
+- `python_repl` - Execute Python code snippets
+- `data_visualization` - Create charts and graphs
+- `sql_tools` - Natural language to SQL queries
+
+### AI Search
+- `perplexity_search` - Advanced AI-powered search
+
+### Notion (when configured)
+- `read_notion_page` - Access Notion page content
+- `search_notion_page` - Search within Notion documents
+- `add_to_notion_page` - Add content to Notion pages
+
+## 📁 Project Structure
+
+```
+Docy_Search_GitHub/
+├── app.py                 # Main Streamlit application
+├── client.py              # API client library
+├── server.py              # FastAPI server
+├── requirements.txt       # Python dependencies
+├── Makefile              # Build and run commands
+├── docker-compose.yml    # Docker configuration
+├── Dockerfile            # Container definition
+├── tool_recommendation/  # Core tool modules
+│   ├── mcp_server.py     # Main MCP server
+│   ├── brave_search.py   # Web search integration
+│   ├── github_mcp_server.py # GitHub integration
+│   ├── notion_mcp_server.py # Notion integration
+│   ├── sql_tools.py      # Database tools
+│   └── activity_tracker.py # Usage monitoring
+├── notion_mcp_agent/     # Standalone Notion agent
+├── config/               # Configuration files
+└── data/                 # Database and logs
+```
+
+## 🐳 Docker Deployment
+
+### Build and Run
+```bash
+# Build the container
+make build
+
+# Start the service
+make run
+
+# Check health
+make health
+
+# View logs
+make logs
+
+# Stop the service
+make stop
+```
+
+### Manual Docker Commands
+```bash
+# Build
+docker-compose build
+
+# Run in background
 docker-compose up -d
 
-# Or using Docker directly
-docker build -t tool-recommendation .
-docker run -p 8947:8947 --env-file .env tool-recommendation
-```
+# View logs
+docker-compose logs -f
 
-### 4. Test the Service
-
-```bash
-# Health check
-curl http://localhost:8947/health
-
-# List available tools
-curl http://localhost:8947/tools
-
-# Search for tools
-curl -X POST http://localhost:8947/execute \
-  -H "Content-Type: application/json" \
-  -d '{"tool_name": "search_tools", "parameters": {"query": "web development"}}'
-```
-
-## 📚 API Documentation
-
-### Base URL
-```
-http://localhost:8947
-```
-
-### Endpoints
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/` | GET | Service information and status |
-| `/health` | GET | Health check for monitoring |
-| `/tools` | GET | List all available tools |
-| `/execute` | POST | Execute a tool with parameters |
-| `/activity` | GET | Get activity status and logs |
-| `/streamlit-integration` | POST | Optimized endpoint for Streamlit |
-
-### Available Tools
-
-#### 🔍 **Tool Search & Analysis**
-- `search_tools(query, category)` - Search for development tools
-- `analyze_tools(search_results, requirements)` - AI analysis of tools
-- `get_installation_guide(tool_name, os_type)` - Installation instructions
-- `compare_tools(tool_names)` - Compare multiple tools
-
-#### 🌐 **Web Search**
-- `search_web(query, num_results)` - Brave Search API integration
-
-#### 🐙 **GitHub Integration**
-- `search_github_repositories(query, language, limit)` - Find repositories
-- `get_repository_structure(repo_full_name)` - Explore repo structure
-- `get_file_from_repository(repo_full_name, file_path)` - Get file contents
-
-#### 🔬 **Code Analysis**
-- `analyze_repository(repo_url_or_path)` - Full repository analysis
-- `get_code_quality_metrics(repo_path)` - Code quality assessment
-
-#### 🐍 **Python Tools**
-- `python_repl(code)` - Execute Python code
-- `data_visualization(code)` - Create matplotlib visualizations
-
-#### 🗃️ **Database Tools**
-- `natural_language_query(question)` - Convert natural language to SQL
-- `execute_sql_query(query)` - Execute safe SQL queries
-
-#### 🤖 **AI Search**
-- `perplexity_search(query, focus, max_results)` - Perplexity AI search
-
-## 🔌 Integration with Your Streamlit App
-
-### Installation
-
-```bash
-pip install requests streamlit
-```
-
-### Simple Integration
-
-```python
-import streamlit as st
-import sys
-sys.path.append('path/to/tool_recommendation_container')
-
-from client import StreamlitToolClient
-
-# Initialize client
-client = StreamlitToolClient("http://localhost:8947")
-
-# Check connection
-if not client.client.health_check():
-    st.error("Tool Recommendation Service not available!")
-    st.stop()
-
-# Chat interface
-if prompt := st.chat_input("What tools are you looking for?"):
-    with st.chat_message("user"):
-        st.write(prompt)
-    
-    with st.chat_message("assistant"):
-        response = client.get_tool_recommendation(prompt)
-        st.write(response)
-```
-
-### Advanced Integration
-
-```python
-from client import ToolRecommendationClient
-
-client = ToolRecommendationClient("http://localhost:8947")
-
-# Search for tools
-search_results = client.search_tools("machine learning frameworks", "ai")
-
-# Get AI analysis
-analysis = client.analyze_tools(search_results, "I need something for NLP")
-
-# Search GitHub
-github_results = client.search_github("transformer models", "python", 10)
-
-# Execute Python code
-code_result = client.execute_python("print('Hello from container!')")
+# Stop
+docker-compose down
 ```
 
 ## 🔧 Configuration
 
-### Environment Variables
+### Server Settings
+- **Port**: 8947 (configurable in docker-compose.yml)
+- **Database**: SQLite (persistent volume mounted)
+- **Logging**: Available in `./logs/` directory
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `BRAVE_API_KEY` | ✅ | Brave Search API key |
-| `GOOGLE_API_KEY` | ✅ | Google Gemini API key |
-| `GITHUB_TOKEN` | ⚠️ | GitHub API token (recommended) |
-| `OPENAI_API_KEY` | ⚠️ | OpenAI API key (for embeddings) |
-| `PERPLEXITY_API_KEY` | ❌ | Perplexity API key (optional) |
-| `DB_PATH` | ❌ | SQLite database path |
-| `SIMILARITY_THRESHOLD` | ❌ | Memory similarity threshold |
+### API Rate Limits
+- Configurable per service in environment variables
+- Built-in retry logic and error handling
+- Activity tracking for usage monitoring
 
-### Docker Volumes
-
-- `/app/data` - Persistent storage for databases and logs
-- `/app/logs` - Application logs (optional)
-
-## 📊 Monitoring & Debugging
-
-### Activity Tracking
+## 🧪 Testing
 
 ```bash
-# Get current activity status
-curl http://localhost:8947/activity
+# Test the container
+make test
+
+# Test specific tools
+python -c "from client import ToolRecommendationClient; print(ToolRecommendationClient().health_check())"
 ```
 
-Response includes:
-- Current running activity
-- Recent activity history
-- Resource usage statistics
-- API call counts
+## 📖 API Documentation
 
-### Health Monitoring
-
+### Health Check
 ```bash
-# Health check
 curl http://localhost:8947/health
-
-# Service info
-curl http://localhost:8947/
 ```
 
-### Logs
-
+### List Available Tools
 ```bash
-# View container logs
-docker-compose logs -f tool-recommendation
-
-# Or with Docker
-docker logs -f <container-id>
+curl http://localhost:8947/tools
 ```
 
-## 🛠️ Development
-
-### Local Development
-
+### Execute Tool
 ```bash
-# Install dependencies
-pip install -r requirements.txt
-
-# Run server directly
-python server.py
-
-# Or with uvicorn
-uvicorn server:app --host 0.0.0.0 --port 8947 --reload
+curl -X POST http://localhost:8947/execute \
+  -H "Content-Type: application/json" \
+  -d '{"tool": "search_tools", "query": "python web frameworks"}'
 ```
-
-### Testing
-
-```bash
-# Test the client
-python client.py
-
-# Test individual tools
-python -c "
-from client import ToolRecommendationClient
-client = ToolRecommendationClient()
-print(client.search_tools('web frameworks'))
-"
-```
-
-## 🔒 Security Considerations
-
-1. **API Keys**: Store securely in `.env` file, never commit to git
-2. **Network**: Run container on internal network in production
-3. **SQL Safety**: Only SELECT operations allowed in SQL tools
-4. **Resource Limits**: Set appropriate memory/CPU limits in production
-
-## 📈 Performance
-
-- **Startup Time**: ~10-15 seconds
-- **Memory Usage**: ~200-500MB depending on active tools
-- **Response Time**: 1-30 seconds depending on tool complexity
-- **Concurrent Requests**: Supports multiple concurrent requests
-
-## 🆘 Troubleshooting
-
-### Common Issues
-
-1. **"Tool Recommendation Server is not available"**
-   - Check if container is running: `docker ps`
-   - Check logs: `docker-compose logs`
-   - Verify port 8947 is not in use
-
-2. **"API Key not found" errors**
-   - Check `.env` file has correct API keys
-   - Restart container after updating environment
-
-3. **Slow responses**
-   - Some tools (especially AI analysis) take 10-30 seconds
-   - Check network connectivity for API calls
-   - Monitor activity endpoint for progress
-
-4. **Tool execution fails**
-   - Check tool parameters match expected format
-   - View activity logs for detailed error information
-
-### Debug Mode
-
-```bash
-# Run with debug logging
-docker-compose up --build
-
-# Or set environment
-export LOG_LEVEL=debug
-python server.py
-```
-
-## 🚢 Production Deployment
-
-### Docker Compose Production
-
-```yaml
-version: '3.8'
-services:
-  tool-recommendation:
-    build: .
-    restart: unless-stopped
-    environment:
-      - LOG_LEVEL=info
-    volumes:
-      - tool_data:/app/data
-    networks:
-      - internal
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-          cpus: '1.0'
-```
-
-### Kubernetes Deployment
-
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: tool-recommendation
-spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: tool-recommendation
-  template:
-    metadata:
-      labels:
-        app: tool-recommendation
-    spec:
-      containers:
-      - name: tool-recommendation
-        image: tool-recommendation:latest
-        ports:
-        - containerPort: 8947
-        env:
-        - name: BRAVE_API_KEY
-          valueFrom:
-            secretKeyRef:
-              name: api-keys
-              key: brave-api-key
-```
-
-## 📝 License
-
-[Include your license information here]
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
+2. Create a feature branch: `git checkout -b feature-name`
+3. Make your changes and test thoroughly
+4. Commit your changes: `git commit -m "Add feature"`
+5. Push to the branch: `git push origin feature-name`
+6. Submit a pull request
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- Built with [FastMCP](https://github.com/jlowin/fastmcp) for MCP server functionality
+- Powered by OpenAI, Brave Search, Perplexity AI, and GitHub APIs
+- Notion integration for seamless documentation management
+- Streamlit for the beautiful web interface
 
 ## 📞 Support
 
-- GitHub Issues: [Link to your issues page]
-- Documentation: [Link to full docs]
-- Discord/Slack: [Community links]
+- 🐛 Issues: [GitHub Issues](https://github.com/Gaya56/Docy_Search_GitHub/issues)
+- 📖 Documentation: [Wiki](https://github.com/Gaya56/Docy_Search_GitHub/wiki)
+
+---
+
+**Made with ❤️ for developers who love great tools and organized documentation**
